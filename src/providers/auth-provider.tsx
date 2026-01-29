@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useAppStore } from '@/store/use-store'
 
 type AuthContextType = {
     user: User | null
@@ -27,6 +28,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setSession(session)
             setUser(session?.user ?? null)
             setLoading(false)
+            if (session?.user) {
+                useAppStore.getState().loadData()
+            }
         })
 
         // Listen for auth changes
@@ -36,6 +40,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setSession(session)
             setUser(session?.user ?? null)
             setLoading(false)
+            if (session?.user) {
+                useAppStore.getState().loadData()
+            }
         })
 
         return () => subscription.unsubscribe()

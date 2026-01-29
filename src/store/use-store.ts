@@ -1,12 +1,18 @@
 import { create } from 'zustand';
 import { AppMode, Transaction, Project, PipelineStage, Debt, RecurringBill, Goal, Client, AppSettings, Category, CategorizationRule, Integration } from '@/lib/types';
 import { addMonths, format, setDate } from 'date-fns';
+import { api } from '@/services/api';
 
 interface AppState {
     mode: AppMode;
     setMode: (mode: AppMode) => void;
     isSidebarOpen: boolean;
+
     toggleSidebar: () => void;
+
+    // Data Loading
+    isLoading: boolean;
+    loadData: () => Promise<void>;
 
     // Transactions
     transactions: Transaction[];
@@ -180,10 +186,17 @@ export const useAppStore = create<AppState>((set) => ({
     isSidebarOpen: true,
     toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
 
-    transactions: MOCK_TRANSACTIONS,
-    addTransaction: (t) => set((state) => ({
-        transactions: [{ ...t, id: crypto.randomUUID() }, ...state.transactions]
-    })),
+    transactions: [],
+    addTransaction: (t) => {
+        const newTransaction = { ...t, id: crypto.randomUUID() };
+        set((state) => ({
+            transactions: [newTransaction, ...state.transactions]
+        }));
+        api.transactions.create(newTransaction).catch(err => {
+            console.error("Failed to persist transaction", err);
+            // Optional: Rollback logic
+        });
+    },
     updateTransaction: (id, updates) => set((state) => ({
         transactions: state.transactions.map(t => t.id === id ? { ...t, ...updates } : t)
     })),
@@ -191,10 +204,14 @@ export const useAppStore = create<AppState>((set) => ({
         transactions: state.transactions.filter((t) => t.id !== id)
     })),
 
-    projects: MOCK_PROJECTS,
-    addProject: (p) => set((state) => ({
-        projects: [...state.projects, { ...p, id: crypto.randomUUID() }]
-    })),
+    projects: [],
+    addProject: (p) => {
+        const newProject = { ...p, id: crypto.randomUUID() };
+        set((state) => ({
+            projects: [...state.projects, newProject]
+        }));
+        api.projects.create(newProject).catch(err => console.error(err));
+    },
     updateProject: (id, updates) => set((state) => ({
         projects: state.projects.map(p => p.id === id ? { ...p, ...updates } : p)
     })),
@@ -319,4 +336,20 @@ export const useAppStore = create<AppState>((set) => ({
     updateIntegration: (id, updates) => set((state) => ({
         integrations: state.integrations.map(i => i.id === id ? { ...i, ...updates } : i)
     })),
+
+    isLoading: false,
+    loadData: async () => {
+        set({ isLoading: true });
+        try {
+            const [transactions, projects] = await Promise.all([
+                api.transactions.list(),
+                api.projects.list()
+            ]);
+            set({ transactions, projects });
+        } catch (error) {
+            console.error("Failed to load data", error);
+        } finally {
+            set({ isLoading: false });
+        }
+    }
 }));
