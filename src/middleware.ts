@@ -1,6 +1,7 @@
 import { type NextRequest } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
 
+// Middleware update to trigger edge redeploy
 export async function middleware(request: NextRequest) {
     return await updateSession(request)
 }
