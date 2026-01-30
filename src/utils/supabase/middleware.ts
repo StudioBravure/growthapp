@@ -61,6 +61,20 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
+    // Single User / Allowed Emails check
+    if (user) {
+        const allowedEmails = process.env.ALLOWED_EMAILS?.split(',').map(e => e.trim()) || []
+        const isAllowed = allowedEmails.length === 0 || allowedEmails.includes(user.email || '')
+
+        if (!isAllowed) {
+            await supabase.auth.signOut()
+            const url = request.nextUrl.clone()
+            url.pathname = '/login'
+            url.searchParams.set('error', 'Acesso não autorizado para este e-mail.')
+            return NextResponse.redirect(url)
+        }
+    }
+
     // If user is authenticated and trying to access auth pages, redirect to dashboard
     if (user && isPublicRoute) {
         const url = request.nextUrl.clone()

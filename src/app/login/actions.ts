@@ -11,6 +11,12 @@ export async function login(formData: FormData) {
     const password = formData.get('password') as string
     const returnTo = formData.get('returnTo') as string
 
+    // Check allowed emails before attempting login (Fast fail)
+    const allowedEmails = process.env.ALLOWED_EMAILS?.split(',').map(e => e.trim()) || []
+    if (allowedEmails.length > 0 && !allowedEmails.includes(email)) {
+        redirect(`/login?error=${encodeURIComponent('Acesso não autorizado para este e-mail.')}`)
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -22,6 +28,26 @@ export async function login(formData: FormData) {
 
     revalidatePath('/', 'layout')
     redirect(returnTo || '/')
+}
+
+export async function signInWithGoogle(returnTo?: string) {
+    const supabase = await createClient()
+    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: `${origin}/auth/callback?returnTo=${returnTo || '/'}`,
+        },
+    })
+
+    if (error) {
+        redirect(`/login?error=${encodeURIComponent(error.message)}`)
+    }
+
+    if (data.url) {
+        redirect(data.url)
+    }
 }
 
 export async function signup(formData: FormData) {
