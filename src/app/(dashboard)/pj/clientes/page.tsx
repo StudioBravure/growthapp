@@ -132,11 +132,37 @@ export default function PjClientesPage() {
                         </div>
                         <div className="space-y-2">
                             <Label>CNPJ *</Label>
-                            <Input value={formData.cnpj || ''} onChange={e => setFormData({ ...formData, cnpj: e.target.value })} />
+                            <Input
+                                value={formData.cnpj || ''}
+                                onChange={e => {
+                                    let v = e.target.value.replace(/\D/g, '');
+                                    if (v.length > 14) v = v.substring(0, 14);
+                                    // Mask 00.000.000/0000-09
+                                    v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+                                    v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                                    v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                                    v = v.replace(/(\d{4})(\d)/, '$1-$2');
+                                    setFormData({ ...formData, cnpj: v });
+                                }}
+                                placeholder="00.000.000/0001-91"
+                                maxLength={18}
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label>WhatsApp *</Label>
-                            <Input value={formData.whatsapp || ''} onChange={e => setFormData({ ...formData, whatsapp: e.target.value })} />
+                            <Input
+                                value={formData.whatsapp || ''}
+                                onChange={e => {
+                                    let v = e.target.value.replace(/\D/g, '');
+                                    if (v.length > 11) v = v.substring(0, 11);
+                                    // Mask (11) 99999-9999
+                                    v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
+                                    v = v.replace(/(\d)(\d{4})$/, '$1-$2');
+                                    setFormData({ ...formData, whatsapp: v });
+                                }}
+                                placeholder="(11) 99999-9999"
+                                maxLength={15}
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label>Email *</Label>
