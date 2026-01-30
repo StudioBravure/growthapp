@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { applySecurityHeaders } from '../security-headers'
 
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = ['/login', '/signup', '/forgot-password', '/reset-password', '/auth']
@@ -71,7 +72,7 @@ export async function updateSession(request: NextRequest) {
             const url = request.nextUrl.clone()
             url.pathname = '/login'
             url.searchParams.set('error', 'Acesso não autorizado para este e-mail.')
-            return NextResponse.redirect(url)
+            return applySecurityHeaders(NextResponse.redirect(url))
         }
     }
 
@@ -79,17 +80,18 @@ export async function updateSession(request: NextRequest) {
     if (user && isPublicRoute) {
         const url = request.nextUrl.clone()
         url.pathname = '/'
-        return NextResponse.redirect(url)
+        return applySecurityHeaders(NextResponse.redirect(url))
     }
 
     // If user is not authenticated and trying to access protected routes, redirect to login
     if (!user && !isPublicRoute) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
+        url.pathname = '/login'
         // Save the original URL to redirect back after login
         url.searchParams.set('returnTo', pathname)
-        return NextResponse.redirect(url)
+        return applySecurityHeaders(NextResponse.redirect(url))
     }
 
-    return supabaseResponse
+    return applySecurityHeaders(supabaseResponse)
 }

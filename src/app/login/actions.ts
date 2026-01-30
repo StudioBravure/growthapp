@@ -11,10 +11,14 @@ export async function login(formData: FormData) {
     const password = formData.get('password') as string
     const returnTo = formData.get('returnTo') as string
 
+    // Anti-timing attack delay (500-1000ms)
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 500));
+
     // Check allowed emails before attempting login (Fast fail)
     const allowedEmails = process.env.ALLOWED_EMAILS?.split(',').map(e => e.trim()) || []
     if (allowedEmails.length > 0 && !allowedEmails.includes(email)) {
-        redirect(`/login?error=${encodeURIComponent('Acesso não autorizado para este e-mail.')}`)
+        console.warn(`[Security] Blocked unauthorized login attempt for: ${email}`)
+        redirect(`/login?error=${encodeURIComponent('Credenciais inválidas ou acesso não autorizado')}`)
     }
 
     const { error } = await supabase.auth.signInWithPassword({
@@ -23,7 +27,8 @@ export async function login(formData: FormData) {
     })
 
     if (error) {
-        redirect(`/login?error=${encodeURIComponent(error.message)}`)
+        console.warn(`[Security] Login failed for: ${email}`, error.message)
+        redirect(`/login?error=${encodeURIComponent('Credenciais inválidas ou acesso não autorizado')}`)
     }
 
     revalidatePath('/', 'layout')
@@ -71,7 +76,8 @@ export async function forgotPassword(formData: FormData) {
     })
 
     if (error) {
-        redirect(`/forgot-password?error=${encodeURIComponent(error.message)}`)
+        // Log error internally but show generic success to prevent email enumeration
+        console.warn(`[Security] Password reset failed for: ${email}`, error.message)
     }
 
     redirect('/forgot-password?message=Check your email for the password reset link')
