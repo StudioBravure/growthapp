@@ -104,19 +104,21 @@ export async function POST(req: NextRequest) {
         const buffer = await fileData.arrayBuffer();
         const bufferNode = Buffer.from(buffer);
 
-        // Try multiple decodings for CSV if needed (UTF-8, ISO-8859-1)
-        let textContent = new TextDecoder('utf-8').decode(buffer);
-        if (textContent.includes('')) {
-            textContent = new TextDecoder('iso-8859-1').decode(buffer);
-        }
-
         let rows: any[] = [];
         let parseError = null;
+        let textContent: string = ''; // Declare textContent here
 
         console.log(`Starting parse for ${source_type}, size: ${buffer.byteLength}`);
 
         // 3. Parse
         if (source_type === 'CSV') {
+            // Try multiple decodings for CSV if needed (UTF-8, ISO-8859-1)
+            let text = new TextDecoder('utf-8').decode(buffer);
+            if (text.includes('')) {
+                text = new TextDecoder('iso-8859-1').decode(buffer);
+            }
+            textContent = text;
+
             // Auto-detect delimiter
             const delimiters = [',', ';', '\t', '|'];
             let bestDelimiter = ',';
@@ -178,8 +180,9 @@ export async function POST(req: NextRequest) {
                 const pdf = require('pdf-parse');
                 const pdfData = await pdf(bufferNode);
 
-                const lines = pdfData.text.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
-                console.log(`PDF extracted ${lines.length} lines`);
+                textContent = pdfData.text || '';
+                const lines = textContent.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
+                console.log(`PDF extracted ${lines.length} lines. Text sample: ${textContent.slice(0, 100)}`);
 
                 // Improved Regex: Supports DD/MM, DD/MM/YY, DD/MM/YYYY, YYYY-MM-DD
                 const dateRegex = /(\d{2}\/\d{2}(\/\d{2,4})?)|(\d{4}-\d{2}-\d{2})/;
@@ -187,7 +190,8 @@ export async function POST(req: NextRequest) {
                 rows = lines.map((line: string) => {
                     const dateMatch = line.match(dateRegex);
                     // Also check if line has something that looks like an amount
-                    const amountMatch = line.match(/(-?\s?\d{1,3}(\.?\d{3})*,\d{2})|(-?\s?\d+\.\d{2})/);
+                    // Pattern for amounts like 1.234,56 or 1234,56 or -1234.56
+                    const amountMatch = line.match(/(-?\s?\d{1,3}(\.?\d{3})*,\d{2})|(-?\s?\d+(\.\d{2})?)/);
 
                     if (dateMatch && amountMatch) {
                         return { raw: line, date: dateMatch[0] };
