@@ -414,30 +414,51 @@ export const api = {
     admin: {
         resetAccount: async () => {
             const supabase = getSupabase();
+            console.log("Starting account reset...");
+
             // Try RPC first
-            const { error } = await supabase.rpc('delete_user_data');
+            const { error: rpcError } = await supabase.rpc('delete_user_data');
 
-            if (error) {
-                console.warn("RPC delete_user_data failed, falling back to sequential delete", error);
+            if (rpcError) {
+                console.warn("RPC delete_user_data failed or not found, falling back to sequential delete:", rpcError);
 
-                // Fallback: Delete child-to-parent manually
-                const user = await getUser();
+                let user;
+                try {
+                    user = await getUser();
+                } catch (e) {
+                    console.error("Authentication failed during reset:", e);
+                    throw new Error("Sessão expirada. Faça login novamente.");
+                }
+
                 const uid = user.id;
 
-                // Deletions matching RPC order
-                // Suppressing errors if tables don't exist
-                await supabase.from('transactions').delete().eq('owner_id', uid);
-                await supabase.from('projects').delete().eq('owner_id', uid);
-                await supabase.from('recurring_bills').delete().eq('owner_id', uid);
-                await supabase.from('debts').delete().eq('owner_id', uid);
-                await supabase.from('goals').delete().eq('owner_id', uid);
-                await supabase.from('clients').delete().eq('owner_id', uid);
-                await supabase.from('budgets').delete().eq('owner_id', uid);
-                await supabase.from('categories').delete().eq('owner_id', uid);
-                await supabase.from('categorization_rules').delete().eq('owner_id', uid);
-                await supabase.from('integrations').delete().eq('owner_id', uid);
-                await supabase.from('alerts').delete().eq('owner_id', uid);
+                // Array of tables in order (Child -> Parent) to handle FKs
+                const tables = [
+                    'transactions',
+                    'categorization_rules',
+                    'budgets',
+                    'projects',
+                    'debts',
+                    'goals',
+                    'recurring_bills',
+                    'categories',
+                    'clients',
+                    'integrations',
+                    'alerts'
+                ];
+
+                for (const table of tables) {
+                    try {
+                        const { error: delError } = await supabase.from(table).delete().eq('owner_id', uid);
+                        if (delError) {
+                            console.warn(`Could not clear table ${table}:`, delError.message);
+                        }
+                    } catch (tableErr) {
+                        console.error(`Unexpected error clearing table ${table}:`, tableErr);
+                    }
+                }
             }
+            console.log("Account reset process completed.");
         }
     }
 };
