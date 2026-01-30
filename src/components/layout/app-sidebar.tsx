@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
-import { useAlerts } from "@/hooks/use-alerts";
 import { UserNav } from "./user-nav";
 
 const navItems = [
@@ -25,9 +24,12 @@ const navItems = [
 
 export function AppSidebar() {
     const pathname = usePathname();
-    const { isSidebarOpen, toggleSidebar, mode } = useAppStore();
+    const { isSidebarOpen, toggleSidebar, mode, alerts } = useAppStore();
     const { theme, setTheme } = useTheme();
-    const { activeAlertsCount } = useAlerts();
+
+    // Filter alerts relevant for the count badge
+    const activeAlertsCount = alerts.filter(a => a.status === 'OPEN' && (mode === 'CONSOLIDATED' || a.ledgerType === mode)).length;
+
     const [mounted, setMounted] = useState(false);
     const [openGroups, setOpenGroups] = useState<string[]>(['financeiro', 'projetos', 'metas']);
 
@@ -38,14 +40,6 @@ export function AppSidebar() {
 
     const toggleGroup = (id: string) => {
         setOpenGroups(prev => prev.includes(id) ? prev.filter(g => g !== id) : [...prev, id]);
-    };
-
-    // --- Mock Data for Alerts (Simulating store selector) ---
-    const alerts = {
-        financeiro: { pending: 3, late: 1 },
-        projetos: { atRisk: 2 },
-        metas: { atRisk: 1 },
-        dividas: { nextDue: '12/08' }
     };
 
     const isGroupActive = (hrefs: string[]) => hrefs.some(h => pathname === h || (h !== '/' && pathname.startsWith(h)));
@@ -131,13 +125,14 @@ export function AppSidebar() {
                                 {(isSidebarOpen ? openGroups.includes('financeiro') : true) && (
                                     <div className={cn("space-y-0.5", !isSidebarOpen && "flex flex-col gap-2 items-center border-t border-border/40 pt-2 mt-2")}>
                                         <NavItem
-                                            href="/financeiro/alertas"
+                                            href="/alerts"
                                             icon={Bell}
                                             label="Alertas PF"
                                             isSidebarOpen={isSidebarOpen}
-                                            isActive={pathname === '/financeiro/alertas'}
+                                            isActive={pathname === '/alerts'}
                                             alert={activeAlertsCount > 0 ? { count: activeAlertsCount, color: 'bg-destructive' } : undefined}
                                         />
+                                        <NavItem href="/orcamentos" icon={PieChart} label="Orçamentos" isSidebarOpen={isSidebarOpen} isActive={pathname === '/orcamentos'} />
                                         <NavItem href="/financeiro" icon={Wallet} label="Transações" isSidebarOpen={isSidebarOpen} isActive={pathname === '/financeiro'} />
                                         <NavItem href="/financeiro/contas-fixas" icon={CalendarClock} label="Contas Fixas" isSidebarOpen={isSidebarOpen} isActive={pathname === '/financeiro/contas-fixas'} />
                                     </div>

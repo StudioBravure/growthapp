@@ -89,22 +89,25 @@ export interface Goal {
     mode: 'PF' | 'PJ';
 }
 
-export type AlertSeverity = 'CRITICAL' | 'ATTENTION' | 'INFO';
-export type AlertType = 'BILL' | 'CARD' | 'BUDGET' | 'GOAL' | 'DEBT';
+export type AlertStatus = 'OPEN' | 'ACKED' | 'SNOOZED' | 'RESOLVED';
+export type AlertSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type AlertType = 'BUDGET_OVER' | 'BUDGET_NEAR' | 'SPEND_ANOMALY' | 'DUE_TODAY' | 'DUE_SOON' | 'OVERDUE' | 'LOW_BALANCE_7D' | 'MONTH_NEGATIVE_RISK' | 'UNCATEGORIZED' | 'DUPLICATE_SUSPECT';
 
 export interface Alert {
     id: string;
+    owner_id?: string; // Optional in frontend types depending on usage
+    ledgerType: 'PF' | 'PJ';
     type: AlertType;
     severity: AlertSeverity;
+    status: AlertStatus;
     title: string;
-    description: string;
-    date: string;
-    relatedId?: string;
-    actions: {
-        label: string;
-        action: string;
-        variant?: 'default' | 'destructive' | 'outline' | 'ghost' | 'link';
-    }[];
+    message: string;
+    reasonPayload?: Record<string, any>;
+    sourceRefs?: { entity: string; id: string }[];
+    fingerprint: string;
+    createdAt: string;
+    snoozedUntil?: string;
+    resolvedAt?: string;
 }
 
 export interface Category {
@@ -170,4 +173,10 @@ export interface AppSettings {
         inactiveRiskDays: number;
         defaultHourlyRate: number; // cents
     };
+}
+
+export interface Budget {
+    category: string;
+    limit: number;
+    mode: 'PF' | 'PJ';
 }

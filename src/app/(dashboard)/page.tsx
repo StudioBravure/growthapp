@@ -13,13 +13,15 @@ import { ConsolidatedOverview } from "@/components/dashboard/consolidated-overvi
 
 export default function DashboardPage() {
     const router = useRouter();
-    const { mode, transactions, generateMonthlyBills, updateTransaction, projects } = useAppStore();
-    const { alerts, activeAlertsCount } = useAlerts();
+    const { mode, transactions, generateMonthlyBills, updateTransaction, projects, alerts } = useAppStore();
 
     // Auto-generate recurring bills for current month whenever dashboard is visited
     useEffect(() => {
         generateMonthlyBills(new Date());
     }, [generateMonthlyBills]);
+
+    const activeAlerts = alerts.filter(a => a.status === 'OPEN' && (mode === 'CONSOLIDATED' || a.ledgerType === mode));
+    const activeAlertsCount = activeAlerts.length;
 
     const filteredTransactions = transactions.filter(t => {
         if (mode === 'CONSOLIDATED') return true;
@@ -45,9 +47,12 @@ export default function DashboardPage() {
         .filter(t => t.type === 'EXPENSE' && isSameMonth(parseISO(t.date), today))
         .reduce((acc, t) => acc + t.amount, 0);
 
-    // Filter alerts for the "Upcoming Bills" list
-    const billAlerts = alerts.filter(a => a.type === 'BILL').slice(0, 4);
-    const criticalCount = alerts.filter(a => a.severity === 'CRITICAL').length;
+    // Filter alerts for the "Upcoming Alerts" list (Focus on bills/debts)
+    const displayAlerts = activeAlerts.filter(a =>
+        ['OVERDUE', 'DUE_TODAY', 'DUE_SOON', 'HIGH', 'CRITICAL'].includes(a.type) || a.severity === 'HIGH' || a.severity === 'CRITICAL'
+    ).slice(0, 5);
+
+    const criticalCount = activeAlerts.filter(a => a.severity === 'CRITICAL').length;
 
     // PJ Specific Status
     const pjProjects = projects.filter(p => p.status === 'ACTIVE');
@@ -74,7 +79,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex items-center gap-2">
                     {mode !== 'PJ' && (
-                        <Button variant="outline" size="sm" onClick={() => router.push('/financeiro/alertas')} className="relative">
+                        <Button variant="outline" size="sm" onClick={() => router.push('/alerts')} className="relative">
                             <Bell className="mr-2 h-4 w-4" />
                             Alertas
                             {activeAlertsCount > 0 && (
@@ -139,7 +144,7 @@ export default function DashboardPage() {
                         "shadow-sm hover:shadow-md transition-all cursor-pointer border-l-4",
                         (mode === 'PJ' ? lateIncome > 0 : criticalCount > 0) ? "border-l-destructive" : "border-l-transparent"
                     )}
-                    onClick={() => router.push(mode === 'PJ' ? '/pj/clientes' : '/financeiro/alertas')}
+                    onClick={() => router.push(mode === 'PJ' ? '/pj/clientes' : '/alerts')}
                 >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -236,11 +241,11 @@ export default function DashboardPage() {
                     <CardHeader className="flex flex-row items-center justify-between pb-4">
                         <div>
                             <CardTitle className="text-lg">
-                                {mode === 'PJ' ? 'Prazos Críticos' : 'Próximas Contas'}
+                                {mode === 'PJ' ? 'Prazos Críticos' : 'Alertas e Contas'}
                             </CardTitle>
                             <CardDescription>Atenção imediata</CardDescription>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => router.push(mode === 'PJ' ? '/pj/projetos' : '/financeiro/alertas')}>
+                        <Button variant="ghost" size="icon" onClick={() => router.push(mode === 'PJ' ? '/pj/projetos' : '/alerts')}>
                             <ChevronRight className="h-4 w-4" />
                         </Button>
                     </CardHeader>
@@ -284,45 +289,59 @@ export default function DashboardPage() {
                             </div>
                         ) : (
                             <div className="divide-y border-t">
-                                {billAlerts.map(alert => (
+                                {displayAlerts.map(alert => (
                                     <div key={alert.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors group">
                                         <div className="flex items-center gap-3">
                                             <div className={cn(
                                                 "h-8 w-8 rounded-lg flex items-center justify-center text-[10px] font-bold",
-                                                alert.severity === 'CRITICAL' ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
+                                                alert.severity === 'CRITICAL' || alert.severity === 'HIGH' ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
                                             )}>
-                                                {alert.title.substring(0, 2).toUpperCase()}
+                                                {alert.type.substring(0, 2)}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium truncate max-w-[120px]">{alert.description.split('—')[0]}</p>
+                                                <p className="text-sm font-medium truncate max-w-[120px]">{alert.title}</p>
                                                 <p className={cn(
                                                     "text-[10px] items-center flex gap-1 font-medium",
-                                                    alert.severity === 'CRITICAL' ? "text-destructive" : "text-muted-foreground"
+                                                    alert.severity === 'CRITICAL' || alert.severity === 'HIGH' ? "text-destructive" : "text-muted-foreground"
                                                 )}>
-                                                    {alert.severity === 'CRITICAL' ? 'Atrasado' : 'Vence em breve'}
+                                                    {alert.type === 'OVERDUE' ? 'Atrasado' : 'Atenção'}
                                                 </p>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-sm font-bold">{alert.description.split('—')[1]}</p>
-                                            <Button
-                                                variant="link"
-                                                className="h-auto p-0 text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity"
-                                                onClick={() => {
-                                                    if (alert.relatedId) updateTransaction(alert.relatedId, { status: 'PAID' });
-                                                }}
-                                            >
-                                                Pagar agora
-                                            </Button>
+                                            {/* Show amount if available in payload */}
+                                            {alert.reasonPayload?.amount && (
+                                                <p className="text-sm font-bold">{formatCurrency(alert.reasonPayload.amount)}</p>
+                                            )}
+                                            {alert.sourceRefs?.[0]?.entity === 'transaction' && (
+                                                <Button
+                                                    variant="link"
+                                                    className="h-auto p-0 text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={() => {
+                                                        const refId = alert.sourceRefs?.[0]?.id;
+                                                        if (refId) updateTransaction(refId, { status: 'PAID' });
+                                                    }}
+                                                >
+                                                    Pagar agora
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
+                                {displayAlerts.length === 0 && (
+                                    <div className="p-10 text-center">
+                                        <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-2">
+                                            <ShieldCheck className="h-5 w-5" />
+                                        </div>
+                                        <p className="text-xs text-muted-foreground italic">Tudo em dia! Sem alertas ativos.</p>
+                                    </div>
+                                )}
                             </div>
                         )}
                         <Button
                             variant="ghost"
                             className="w-full rounded-none h-10 text-xs text-muted-foreground hover:text-primary border-t"
-                            onClick={() => router.push(mode === 'PJ' ? '/pj/projetos' : '/financeiro/alertas')}
+                            onClick={() => router.push(mode === 'PJ' ? '/pj/projetos' : '/alerts')}
                         >
                             {mode === 'PJ' ? 'Ver todos os projetos' : 'Ver todos os alertas'}
                         </Button>
@@ -332,3 +351,4 @@ export default function DashboardPage() {
         </div>
     )
 }
+

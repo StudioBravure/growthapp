@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useAppStore } from '@/store/use-store'
 import { useRealtimeSync } from '@/hooks/use-realtime-sync'
+import { useAlertsScanner } from '@/hooks/use-alerts-scanner'
 
 type AuthContextType = {
     user: User | null
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     useRealtimeSync(user?.id);
+    useAlertsScanner();
 
     return (
         <AuthContext.Provider value={{ user, session, loading, signOut }}>

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AppMode, Transaction, Project, PipelineStage, Debt, RecurringBill, Goal, Client, AppSettings, Category, CategorizationRule, Integration } from '@/lib/types';
+import { AppMode, Transaction, Project, PipelineStage, Debt, RecurringBill, Goal, Client, AppSettings, Category, CategorizationRule, Integration, Alert, AlertStatus, Budget } from '@/lib/types';
 import { addMonths, format, setDate } from 'date-fns';
 import { api } from '@/services/api';
 
@@ -75,13 +75,14 @@ interface AppState {
 
     integrations: Integration[];
     updateIntegration: (id: string, updates: Partial<Integration>) => void;
+
+    // Alerts
+    alerts: Alert[];
+    setAlerts: (alerts: Alert[]) => void;
+    updateAlert: (id: string, updates: Partial<Alert>) => void;
 }
 
-export interface Budget {
-    category: string;
-    limit: number;
-    mode: 'PF' | 'PJ';
-}
+
 
 const DEFAULT_SETTINGS: AppSettings = {
     preferences: {
@@ -335,6 +336,12 @@ export const useAppStore = create<AppState>((set) => ({
     integrations: MOCK_INTEGRATIONS,
     updateIntegration: (id, updates) => set((state) => ({
         integrations: state.integrations.map(i => i.id === id ? { ...i, ...updates } : i)
+    })),
+
+    alerts: [],
+    setAlerts: (alerts) => set({ alerts }),
+    updateAlert: (id, updates) => set((state) => ({
+        alerts: state.alerts.map(a => a.id === id ? { ...a, ...updates } : a)
     })),
 
     isLoading: false,

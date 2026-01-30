@@ -2,11 +2,11 @@ import { AlertsList } from "@/components/finance/alerts-list";
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Central de Alertas | Financeiro',
+    title: 'Central de Alertas | Financeiro 360',
     description: 'Gerencie alertas, riscos e oportunidades financeiras.',
 };
 
-export default function Page() {
+export default function AlertsPage() {
     return (
         <div className="space-y-6">
             <div>
