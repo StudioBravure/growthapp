@@ -178,27 +178,84 @@ export async function POST(req: NextRequest) {
             try {
                 const require = createRequire(import.meta.url);
                 const pdf = require('pdf-parse');
+
+                // Use a custom pagerender to ensure spacing? 
+                // For now, standard render.
                 const pdfData = await pdf(bufferNode);
 
                 textContent = pdfData.text || '';
-                const lines = textContent.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
-                console.log(`PDF extracted ${lines.length} lines. Text sample: ${textContent.slice(0, 100)}`);
+
+                // Strategy 1: Standard Line Split
+                let lines = textContent.split(/\r\n|\n|\r/).map((l: string) => l.trim()).filter((l: string) => l.length > 0);
+                console.log(`PDF extracted ${lines.length} lines. Text length: ${textContent.length}`);
+
+                // Check for "Image PDF" (Empty text)
+                if (textContent.length < 50) {
+                    throw new Error("O PDF parece ser uma imagem digitalizada ou está vazio. O sistema requer PDFs com texto selecionável.");
+                }
+
+                // Strategy 2: Wall of Text (Few lines, lot of text)
+                // Some PDFs extract as just one huge string. We split by Date patterns.
+                if (lines.length < 5 && textContent.length > 200) {
+                    console.log("PDF appears to be a 'Wall of Text'. Attempting to split by Date patterns.");
+                    // Look for dd/mm/yyyy or dd/mm
+                    const dateSplitRegex = /(?=\d{2}\/\d{2}(?:\/\d{2,4})?)/;
+                    lines = textContent.split(dateSplitRegex).map(l => l.trim()).filter(l => l.length > 10);
+                }
 
                 // Improved Regex: Supports DD/MM, DD/MM/YY, DD/MM/YYYY, YYYY-MM-DD
                 const dateRegex = /(\d{2}\/\d{2}(\/\d{2,4})?)|(\d{4}-\d{2}-\d{2})/;
+                // Amount Regex: 1.234,56 | 1234,56 | 1,234.56 | -1234.56
+                const amountRegex = /(-?\s?\d{1,3}(\.?\d{3})*,\d{2})|(-?\s?\d{1,3}(,\d{3})*\.\d{2})|(-?\d+\.\d{2})/;
 
                 rows = lines.map((line: string) => {
-                    const dateMatch = line.match(dateRegex);
-                    // Also check if line has something that looks like an amount
-                    // Pattern for amounts like 1.234,56 or 1234,56 or -1234.56
-                    const amountMatch = line.match(/(-?\s?\d{1,3}(\.?\d{3})*,\d{2})|(-?\s?\d+(\.\d{2})?)/);
+                    // Clean symbols that might break regex
+                    const cleanLine = line.replace(/[^\w\s/.,-]/g, ' ');
+
+                    const dateMatch = cleanLine.match(dateRegex);
+                    const amountMatch = cleanLine.match(amountRegex);
 
                     if (dateMatch && amountMatch) {
-                        return { raw: line, date: dateMatch[0] };
+                        // Very naive extraction: Date is dateMatch, Amount is amountMatch, Rest is Description
+                        // We need to be careful not to capture the date/amount as description
+                        let desc = line;
+                        if (dateMatch[0]) desc = desc.replace(dateMatch[0], '');
+                        if (amountMatch[0]) desc = desc.replace(amountMatch[0], '');
+
+                        return {
+                            raw: line,
+                            date: dateMatch[0],
+                            amount: amountMatch[0],
+                            description: desc.trim()
+                        };
                     }
                     return null;
                 }).filter(Boolean);
-                console.log(`PDF found ${rows.length} date+amount matching lines`);
+
+                // Strategy 3: Global Regex Search (Panic Mode)
+                // If Line-by-Line failed to find rows, try to find matches across the whole blob
+                if (rows.length === 0) {
+                    console.log("Line parsing failed. Attempting Global Regex Search.");
+                    const globalRegex = /(\d{2}\/\d{2}(?:\/\d{2,4})?)\s+(.*?)\s+(-?\d{1,3}(?:[.,]\d{3})*[.,]\d{2})/g;
+                    // Note: This regex assumes Date ... Desc ... Amount ordering. 
+                    // It is safer to rely on explicit capture groups if possible.
+
+                    // Let's try a loose global match for Date.............Amount
+                    const looseRegex = /(\d{2}\/\d{2}(?:\/\d{2,4})?).{5,100}?(-?\d{1,3}(?:[.,]\d{3})*[.,]\d{2})/g;
+
+                    let match;
+                    while ((match = looseRegex.exec(textContent)) !== null) {
+                        rows.push({
+                            raw: match[0],
+                            date: match[1],
+                            amount: match[2],
+                            description: match[0].replace(match[1], '').replace(match[2], '').trim()
+                        });
+                    }
+                }
+
+                console.log(`PDF found ${rows.length} transactions via combined strategies.`);
+
             } catch (e: any) {
                 console.error("PDF Parse Error:", e);
                 parseError = e.message;
