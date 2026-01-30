@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { DollarSign, Activity, TrendingUp, AlertCircle, Calendar, ChevronRight, Bell, ShieldCheck } from "lucide-react";
 import { useAppStore } from "@/store/use-store";
@@ -18,6 +18,15 @@ export default function DashboardPage() {
     useEffect(() => {
         generateMonthlyBills(new Date());
     }, [generateMonthlyBills]);
+
+    // New State for PJ Top Customer
+    const [topCustomer, setTopCustomer] = useState<any>(null);
+
+    useEffect(() => {
+        if (mode === 'PJ') {
+            fetch('/api/pj/dashboard/top-customer').then(res => res.json()).then(setTopCustomer).catch(console.error);
+        }
+    }, [mode]);
 
     const activeAlerts = alerts.filter(a => a.status === 'OPEN' && (mode === 'CONSOLIDATED' || a.ledgerType === mode));
     const activeAlertsCount = activeAlerts.length;
@@ -123,19 +132,45 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                {/* KPI 2: A Receber */}
-                <Card className="shadow-sm hover:shadow-md transition-shadow">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">A Receber</CardTitle>
-                        <Activity className="h-4 w-4 text-blue-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(pendingIncome)}</div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            {mode === 'PJ' ? 'Recebíveis futuros' : 'Previsão de Entrada'}
-                        </p>
-                    </CardContent>
-                </Card>
+                {/* KPI 2: A Receber (PF/Cons) OR Top Customer (PJ) */}
+                {mode === 'PJ' ? (
+                    <Card className="shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-blue-500">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Top Cliente (Mês)</CardTitle>
+                            <TrendingUp className="h-4 w-4 text-blue-500" />
+                        </CardHeader>
+                        <CardContent>
+                            {topCustomer?.top_customer ? (
+                                <>
+                                    <div className="text-lg font-bold truncate">{topCustomer.top_customer.company}</div>
+                                    <div className="text-xs text-muted-foreground font-bold">{formatCurrency(topCustomer.top_customer.amount)}</div>
+                                    <p className="text-[10px] text-muted-foreground mt-1">
+                                        {topCustomer.top_customer.percent.toFixed(0)}% da receita do mês
+                                    </p>
+                                    <Button variant="link" size="sm" className="h-auto p-0 text-[10px]" onClick={() => router.push('/pj/clientes')}>Ver perfil</Button>
+                                </>
+                            ) : (
+                                <div className="flex flex-col items-start gap-1">
+                                    <div className="text-sm font-medium text-muted-foreground">Nenhum recebimento</div>
+                                    <p className="text-[10px] text-muted-foreground">Sem pagamentos recebidos este mês.</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <Card className="shadow-sm hover:shadow-md transition-shadow">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground">A Receber</CardTitle>
+                            <Activity className="h-4 w-4 text-blue-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatCurrency(pendingIncome)}</div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Previsão de Entrada
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* KPI 3: Críticos (Atrasados ou Alertas) */}
                 <Card

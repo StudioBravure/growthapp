@@ -1,67 +1,155 @@
+
 "use client";
 
 import { useState } from "react";
-import { Plus, Search, Filter, Users } from "lucide-react";
+import { useCustomers } from "@/hooks/use-pj-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ClientList } from "@/components/pj/client-list";
-import { ClientForm } from "@/components/pj/client-form";
-import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import { Search, Plus, Edit, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-export default function ClientesPage() {
-    const [isAddOpen, setIsAddOpen] = useState(false);
+export default function PjClientesPage() {
+    const { customers, loading, createCustomer, updateCustomer } = useCustomers();
+    const [search, setSearch] = useState("");
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [editingCust, setEditingCust] = useState<any>(null);
+
+    // Form
+    const [formData, setFormData] = useState<any>({});
+    const [saving, setSaving] = useState(false);
+
+    const filtered = customers.filter(c =>
+        c.name.toLowerCase().includes(search.toLowerCase()) ||
+        c.company_name.toLowerCase().includes(search.toLowerCase())
+    );
+
+    const handleOpen = (cust?: any) => {
+        setEditingCust(cust);
+        setFormData(cust || { name: '', company_name: '', whatsapp: '', cnpj: '', email: '', status: 'ACTIVE' });
+        setIsSheetOpen(true);
+    };
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            if (editingCust) {
+                await updateCustomer(editingCust.id, formData);
+            } else {
+                await createCustomer(formData);
+            }
+            setIsSheetOpen(false);
+        } catch (e) {
+            // handled in hook
+        } finally {
+            setSaving(false);
+        }
+    };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="space-y-6 p-6">
+            <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">Clientes</h1>
-                    <p className="text-muted-foreground text-sm flex items-center gap-1">
-                        <Users className="h-3 w-3" /> Gerencie sua base de contatos e saúde financeira por cliente.
-                    </p>
+                    <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
+                    <p className="text-muted-foreground">Gerencie sua carteira de clientes PJ.</p>
                 </div>
-
-                <div className="flex gap-2 w-full sm:w-auto">
-                    <Sheet open={isAddOpen} onOpenChange={setIsAddOpen}>
-                        <SheetTrigger asChild>
-                            <Button className="flex-1 sm:flex-none shadow-lg shadow-primary/20">
-                                <Plus className="mr-2 h-4 w-4" /> Novo Cliente
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent className="sm:max-w-[700px] p-20 overflow-y-auto">
-                            <SheetHeader className="mb-8 p-0 text-left sm:text-left">
-                                <SheetTitle className="text-3xl font-bold">Novo Cliente</SheetTitle>
-                                <SheetDescription className="text-base">
-                                    Adicione as informações para acompanhamento de projetos e cobranças.
-                                </SheetDescription>
-                            </SheetHeader>
-                            <ClientForm onSuccess={() => setIsAddOpen(false)} />
-                        </SheetContent>
-                    </Sheet>
-                </div>
+                <Button onClick={() => handleOpen()}><Plus className="mr-2 h-4 w-4" /> Novo Cliente</Button>
             </div>
 
-            <div className="flex items-center gap-2">
-                <div className="relative flex-1 group">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
-                    <Input
-                        placeholder="Buscar cliente por nome ou empresa..."
-                        className="pl-10 h-10 bg-card border-none ring-1 ring-border focus-visible:ring-primary shadow-sm"
-                    />
-                </div>
-                <Button variant="outline" size="icon" className="h-10 w-10 shrink-0">
-                    <Filter className="h-4 w-4" />
-                </Button>
+            <div className="flex items-center gap-2 max-w-sm">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Buscar por nome ou empresa..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="h-9"
+                />
             </div>
 
-            <ClientList />
+            <div className="border rounded-md bg-card">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Empresa</TableHead>
+                            <TableHead>Contato</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>WhatsApp</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {loading ? (
+                            <TableRow>
+                                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">Carregando...</TableCell>
+                            </TableRow>
+                        ) : filtered.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">Nenhum cliente encontrado.</TableCell>
+                            </TableRow>
+                        ) : (
+                            filtered.map(cust => (
+                                <TableRow key={cust.id}>
+                                    <TableCell className="font-medium">
+                                        {cust.company_name}
+                                        <div className="text-[10px] text-muted-foreground">{cust.cnpj}</div>
+                                    </TableCell>
+                                    <TableCell>{cust.name}</TableCell>
+                                    <TableCell>{cust.email}</TableCell>
+                                    <TableCell>{cust.whatsapp}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={cust.status === 'ACTIVE' ? 'default' : 'secondary'}>{cust.status}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="ghost" size="icon" onClick={() => handleOpen(cust)}>
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                <SheetContent>
+                    <SheetHeader>
+                        <SheetTitle>{editingCust ? 'Editar Cliente' : 'Novo Cliente'}</SheetTitle>
+                        <SheetDescription>Preencha os dados obrigatórios.</SheetDescription>
+                    </SheetHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="space-y-2">
+                            <Label>Nome do Contato *</Label>
+                            <Input value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Empresa *</Label>
+                            <Input value={formData.company_name || ''} onChange={e => setFormData({ ...formData, company_name: e.target.value })} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>CNPJ *</Label>
+                            <Input value={formData.cnpj || ''} onChange={e => setFormData({ ...formData, cnpj: e.target.value })} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>WhatsApp *</Label>
+                            <Input value={formData.whatsapp || ''} onChange={e => setFormData({ ...formData, whatsapp: e.target.value })} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Email *</Label>
+                            <Input value={formData.email || ''} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                        </div>
+                    </div>
+                    <SheetFooter>
+                        <Button onClick={handleSave} disabled={saving}>
+                            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Salvar
+                        </Button>
+                    </SheetFooter>
+                </SheetContent>
+            </Sheet>
         </div>
     );
 }
