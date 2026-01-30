@@ -105,9 +105,9 @@ export function ClientList() {
             </Table>
 
             <Sheet open={!!editingClient} onOpenChange={(open) => !open && setEditingClient(null)}>
-                <SheetContent className="sm:max-w-[500px]">
-                    <SheetHeader className="mb-6">
-                        <SheetTitle>Editar Cliente</SheetTitle>
+                <SheetContent className="sm:max-w-[700px] p-20 overflow-y-auto">
+                    <SheetHeader className="mb-8 p-0">
+                        <SheetTitle className="text-3xl font-bold">Editar Cliente</SheetTitle>
                     </SheetHeader>
                     {editingClient && (
                         <ClientForm

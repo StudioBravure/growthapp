@@ -117,9 +117,9 @@ export function ProjectList() {
             </Table>
 
             <Sheet open={!!editingProject} onOpenChange={(open) => !open && setEditingProject(null)}>
-                <SheetContent className="sm:max-w-[500px]">
-                    <SheetHeader className="mb-6">
-                        <SheetTitle>Editar Projeto</SheetTitle>
+                <SheetContent className="sm:max-w-[700px] p-20 overflow-y-auto">
+                    <SheetHeader className="mb-8 p-0">
+                        <SheetTitle className="text-3xl font-bold">Editar Projeto</SheetTitle>
                     </SheetHeader>
                     {editingProject && (
                         <ProjectForm

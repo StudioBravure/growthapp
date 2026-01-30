@@ -604,10 +604,10 @@ export function DebtSimulator() {
 
             {/* SHEET FORM */}
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent side="right" className="sm:max-w-[400px] overflow-y-auto">
-                    <SheetHeader className="mb-4">
-                        <SheetTitle>{editingDebt ? 'Editar Dívida' : 'Nova Dívida'}</SheetTitle>
-                        <SheetDescription>Valores em reais (R$)</SheetDescription>
+                <SheetContent side="right" className="sm:max-w-[650px] p-20 overflow-y-auto">
+                    <SheetHeader className="mb-8 p-0">
+                        <SheetTitle className="text-3xl font-bold">{editingDebt ? 'Editar Dívida' : 'Nova Dívida'}</SheetTitle>
+                        <SheetDescription className="text-base">Valores em reais (R$)</SheetDescription>
                     </SheetHeader>
 
                     <div className="grid gap-5">
