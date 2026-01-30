@@ -50,7 +50,7 @@ export function AppSidebar() {
             isSidebarOpen ? "w-64" : "w-16"
         )}>
             {/* Header */}
-            <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border shrink-0 bg-sidebar/50 backdrop-blur-sm">
+            <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border shrink-0 bg-surface-container-high/90 backdrop-blur-sm">
                 {isSidebarOpen ? (
                     <div className="flex flex-col">
                         <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-primary to-violet-400 bg-clip-text text-transparent">Studio Bravure</span>

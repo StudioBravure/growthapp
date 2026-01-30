@@ -44,11 +44,11 @@ export function AlertsWidget() {
     }
 
     return (
-        <Card className={cn("shadow-sm", criticalCount > 0 ? "border-l-4 border-l-red-500" : "border-l-4 border-l-yellow-500")}>
+        <Card className={cn("shadow-sm", criticalCount > 0 ? "border-l-4 border-l-destructive" : "border-l-4 border-l-warning")}>
             <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                        {criticalCount > 0 ? <AlertCircle className="h-4 w-4 text-red-500" /> : <Bell className="h-4 w-4 text-yellow-600" />}
+                        {criticalCount > 0 ? <AlertCircle className="h-4 w-4 text-destructive" /> : <Bell className="h-4 w-4 text-warning" />}
                         Alertas Financeiros
                         <Badge variant="secondary" className="ml-2 bg-muted text-xs">{activeAlerts.length}</Badge>
                     </CardTitle>
@@ -59,9 +59,9 @@ export function AlertsWidget() {
             </CardHeader>
             <CardContent className="space-y-3 pt-0">
                 {sorted.map(alert => (
-                    <div key={alert.id} className="flex items-start gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors border border-transparent hover:border-border">
+                    <div key={alert.id} className="flex items-start gap-3 p-2 rounded-md hover:bg-[var(--state-hover-overlay)] transition-colors border border-transparent hover:border-border">
                         <div className={cn("mt-0.5 min-w-1.5 min-h-1.5 rounded-full",
-                            alert.severity === 'HIGH' ? "bg-red-500" : "bg-yellow-500"
+                            (alert.severity === 'HIGH' || alert.severity === 'CRITICAL') ? "bg-destructive" : "bg-warning"
                         )} />
                         <div>
                             <p className="text-xs font-medium leading-none">{alert.title}</p>
