@@ -128,7 +128,13 @@ export default function ScannerExtratosPage() {
                 })
             });
             const parseData = await parseRes.json();
-            if (!parseRes.ok) throw new Error(parseData.error);
+            if (!parseRes.ok) {
+                if (parseData.debug) {
+                    console.error("Parse Debug Info:", parseData.debug);
+                    throw new Error(`${parseData.error} (Tipo: ${parseData.debug.sourceType}, Sample: ${parseData.debug.sample}...)`);
+                }
+                throw new Error(parseData.error);
+            }
 
             // Load Batch
             await loadBatch(parseData.batch_id);
@@ -136,7 +142,7 @@ export default function ScannerExtratosPage() {
             toast.success("Arquivo processado com sucesso!");
 
         } catch (e: any) {
-            toast.error(e.message);
+            toast.error(e.message, { duration: 6000 });
         } finally {
             setIsUploading(false);
         }

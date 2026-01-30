@@ -17,11 +17,17 @@ function normalizeString(str: string) {
 
 // Helper to parse date
 function parseDate(raw: string): Date | null {
-    // Try common formats: DD/MM/YYYY, YYYY-MM-DD, MM/DD/YYYY
-    const formats = ['dd/MM/yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy', 'dd-MM-yyyy'];
+    if (!raw) return null;
+    const clean = raw.trim().replace(/[^\d\/-]/g, '');
+    if (!clean) return null;
+
+    // Try common formats: DD/MM/YYYY, YYYY-MM-DD, MM/DD/YYYY, DD/MM/YY, DD/MM
+    const formats = ['dd/MM/yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy', 'dd-MM-yyyy', 'dd/MM/yy', 'dd/MM'];
     for (const fmt of formats) {
-        const d = parse(raw, fmt, new Date());
-        if (isValid(d)) return d;
+        try {
+            const d = parse(clean, fmt, new Date());
+            if (isValid(d)) return d;
+        } catch (e) { }
     }
     return null;
 }
@@ -29,17 +35,39 @@ function parseDate(raw: string): Date | null {
 // Helper to parse amount
 function parseAmount(raw: any): number {
     if (typeof raw === 'number') return raw;
-    if (!raw) return 0;
-    // Remove currency symbols, keep numbers, comma/dot
-    // Standardize: BRL often uses comma as decimal
-    let s = raw.toString().replace(/[^\d.,-]/g, '');
-    if (s.includes(',') && s.split(',').length === 2 && !s.includes('.')) {
-        s = s.replace(',', '.'); // 100,50 -> 100.50
-    } else if (s.includes(',') && s.includes('.')) {
-        // 1.000,50 -> remove . replace ,
+    if (!raw || raw === '') return NaN;
+
+    // Remove currency symbols and spaces
+    let s = raw.toString().replace(/[^\d.,-]/g, '').trim();
+    if (!s) return NaN;
+
+    // Detect format
+    const hasComma = s.includes(',');
+    const hasDot = s.includes('.');
+
+    if (hasComma && hasDot) {
+        // Assume 1.234,56 (BRL)
         s = s.replace(/\./g, '').replace(',', '.');
+    } else if (hasComma) {
+        // Assume 1234,56 (BRL)
+        s = s.replace(',', '.');
+    } else if (hasDot) {
+        // Ambiguous: 1.234 or 12.34?
+        // If it ends with .XX (2 digits), assume decimal
+        // If it ends with .XXX (3 digits), assume thousand
+        const parts = s.split('.');
+        if (parts[parts.length - 1].length === 3) {
+            s = s.replace(/\./g, '');
+        } else if (parts[parts.length - 1].length === 2 || parts[parts.length - 1].length === 1) {
+            // keep it as is (JS parseFloat handles it as decimal)
+        } else {
+            // something else, probably thousand
+            s = s.replace(/\./g, '');
+        }
     }
-    return parseFloat(s);
+
+    const val = parseFloat(s);
+    return isNaN(val) ? NaN : val;
 }
 
 export async function POST(req: NextRequest) {
@@ -74,59 +102,140 @@ export async function POST(req: NextRequest) {
         if (downloadError || !fileData) return NextResponse.json({ error: 'Download failed' }, { status: 500 });
 
         const buffer = await fileData.arrayBuffer();
-        const textContent = new TextDecoder('utf-8').decode(buffer); // For CSV
-        const bufferNode = Buffer.from(buffer); // For PDF
+        const bufferNode = Buffer.from(buffer);
+
+        // Try multiple decodings for CSV if needed (UTF-8, ISO-8859-1)
+        let textContent = new TextDecoder('utf-8').decode(buffer);
+        if (textContent.includes('')) {
+            textContent = new TextDecoder('iso-8859-1').decode(buffer);
+        }
 
         let rows: any[] = [];
         let parseError = null;
 
+        console.log(`Starting parse for ${source_type}, size: ${buffer.byteLength}`);
+
         // 3. Parse
         if (source_type === 'CSV') {
-            const parsed = Papa.parse(textContent, { header: true, skipEmptyLines: true });
-            if (parsed.errors.length > 0) {
-                console.warn("CSV Parse errors:", parsed.errors);
+            // Auto-detect delimiter
+            const delimiters = [',', ';', '\t', '|'];
+            let bestDelimiter = ',';
+            let maxCols = 0;
+
+            for (const d of delimiters) {
+                const test = Papa.parse(textContent.slice(0, 1000), { delimiter: d });
+                const firstRow = test.data[0] as string[];
+                if (firstRow && firstRow.length > maxCols) {
+                    maxCols = firstRow.length;
+                    bestDelimiter = d;
+                }
             }
-            rows = parsed.data;
+            console.log(`Auto-detected delimiter: "${bestDelimiter}"`);
+
+            // Find Header
+            const lines = textContent.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            const headerIndex = lines.findIndex(l => {
+                const cols = l.toLowerCase();
+                return (cols.includes('data') || cols.includes('date')) &&
+                    (cols.includes('valor') || cols.includes('amount') || cols.includes('historico') || cols.includes('descri'));
+            });
+
+            if (headerIndex !== -1) {
+                console.log(`Found header at line ${headerIndex}`);
+                const csvBody = lines.slice(headerIndex).join('\n');
+                const parsed = Papa.parse(csvBody, {
+                    header: true,
+                    skipEmptyLines: true,
+                    delimiter: bestDelimiter,
+                    transformHeader: (h) => h.trim()
+                });
+                rows = parsed.data;
+            } else {
+                // FALLBACK: No header found, try to parse every line and find transactions
+                console.log("No header found, using line-by-line fallback");
+                rows = lines.map(line => {
+                    const cols = line.split(bestDelimiter).map(c => c.trim().replace(/^"|"$/g, ''));
+                    if (cols.length < 2) return null;
+
+                    // Simple logic: if a column looks like a date and another like a number
+                    const hasDate = cols.some(c => parseDate(c));
+                    const hasAmount = cols.some(c => !isNaN(parseAmount(c)) && parseAmount(c) !== 0);
+
+                    if (hasDate && hasAmount) {
+                        return {
+                            date: cols.find(c => parseDate(c)),
+                            amount: cols.find(c => !isNaN(parseAmount(c)) && parseAmount(c) !== 0),
+                            description: cols.find(c => c.length > 5 && isNaN(parseAmount(c)) && !parseDate(c)) || line
+                        };
+                    }
+                    return null;
+                }).filter(Boolean);
+            }
+            console.log(`CSV Parsed rows: ${rows.length}`);
         } else if (source_type === 'PDF') {
             try {
                 const require = createRequire(import.meta.url);
                 const pdf = require('pdf-parse');
                 const pdfData = await pdf(bufferNode);
-                // Very basic PDF text extraction heuristics
-                // This usually requires a specialized parser per bank layout
-                // For now, we assume simple line-by-line regex or just dump text
-                const lines = pdfData.text.split('\n');
-                // Heuristic: look for date/amount lines
-                // MOCK/SIMPLE IMPLEMENTATION:
-                // Real world would be complex. We'll try to visually analyze lines.
-                // Regex for date DD/MM/YYYY
-                const dateRegex1 = /\d{2}\/\d{2}\/\d{4}/;
+
+                const lines = pdfData.text.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
+                console.log(`PDF extracted ${lines.length} lines`);
+
+                // Improved Regex: Supports DD/MM, DD/MM/YY, DD/MM/YYYY, YYYY-MM-DD
+                const dateRegex = /(\d{2}\/\d{2}(\/\d{2,4})?)|(\d{4}-\d{2}-\d{2})/;
 
                 rows = lines.map((line: string) => {
-                    const dateMatch = line.match(dateRegex1);
-                    if (dateMatch) {
-                        // assume rest is desc + amount
-                        // VERY NAIVE
+                    const dateMatch = line.match(dateRegex);
+                    // Also check if line has something that looks like an amount
+                    const amountMatch = line.match(/(-?\s?\d{1,3}(\.?\d{3})*,\d{2})|(-?\s?\d+\.\d{2})/);
+
+                    if (dateMatch && amountMatch) {
                         return { raw: line, date: dateMatch[0] };
                     }
                     return null;
                 }).filter(Boolean);
+                console.log(`PDF found ${rows.length} date+amount matching lines`);
             } catch (e: any) {
+                console.error("PDF Parse Error:", e);
                 parseError = e.message;
             }
         }
 
         if (rows.length === 0) {
-            return NextResponse.json({ error: 'No transactions found or parse failed' }, { status: 400 });
+            console.warn("No rows found after parsing. Data sample:", textContent.slice(0, 500));
+            const lineCount = textContent.split('\n').length;
+            return NextResponse.json({
+                error: `Nenhuma transação encontrada. O arquivo possui ${lineCount} linhas, mas nenhuma seguiu o padrão de (Data + Valor).`,
+                debug: {
+                    lineCount,
+                    sourceType: source_type,
+                    sample: textContent.slice(0, 200)
+                }
+            }, { status: 400 });
         }
 
         // 4. Normalize Rows
         const normalizedRows = rows.map((r, index) => {
             // Map CSV columns flexibly
-            const dateRaw = r.date || r.Data || r.Date || r['Data Transação'];
-            const startRaw = r.description || r.Descricao || r.Historico || r.Memo || r['Histórico'] || (r.raw ? r.raw : 'Sem descrição');
-            const amountRaw = r.amount || r.Valor || r.Amount || r.Value;
-            // Direction?
+            const dateRaw = r.date || r.Data || r.Date || r['Data Transação'] || r['DATA'];
+            const startRaw = r.description || r.Descricao || r.Historico || r.Memo || r['Histórico'] || r['HISTÓRICO'] || (r.raw ? r.raw : 'Sem descrição');
+            let amountRaw = r.amount || r.Valor || r.Amount || r.Value || r['VALOR'];
+
+            // For PDF, we often have the whole line in 'raw' and need to find the amount
+            if (source_type === 'PDF' && r.raw && !amountRaw) {
+                // Heuristic: Amount is often at the end of the line
+                // Matches patterns like: 1.234,56 or 1234.56 or 1234,56 - (sign can be prefix or suffix)
+                const amountRegex = /(-?\s?\d{1,3}(\.?\d{3})*,\d{2})|(-?\s?\d+(\.\d{2})?)/;
+                // Try reverse search for numerical values
+                const parts = r.raw.split(/\s+/);
+                for (let i = parts.length - 1; i >= 0; i--) {
+                    const p = parts[i].replace(/[^\d.,-]/g, '');
+                    if (p.includes(',') || (p.includes('.') && p.match(/\.\d{2}$/))) {
+                        amountRaw = p;
+                        break;
+                    }
+                }
+            }
 
             const date = parseDate(dateRaw);
             if (!date) return null; // Skip invalid date
@@ -137,15 +246,7 @@ export async function POST(req: NextRequest) {
                 direction = 'OUT';
                 amount = Math.abs(amount); // Store absolute
             } else {
-                // Heuristic: check if column specifically says "Débito" or "Crédito"
-                // or if 'type' column exists
-                direction = 'IN'; // Default positive as IN? Or Credit Card positive is OUT?
-                // Context matters. For Bank extract: - is OUT.
-                // For Credit Card: + is usually OUT (bill). 
-                // Let's assume Bank Logic: + IN, - OUT.
-                if (fileRecord.ledger_type === 'PF') {
-                    // Usually we assume negative is expense
-                }
+                direction = 'IN';
             }
 
             // Override using Amount sign if present in string
