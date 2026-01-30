@@ -174,12 +174,12 @@ function FinanceiroContent() {
                                     <Plus className="mr-2 h-4 w-4" /> Nova Conta Fixa
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent>
-                                <SheetHeader>
-                                    <SheetTitle>Nova Conta Fixa</SheetTitle>
-                                    <SheetDescription>Configure uma despesa recorrente.</SheetDescription>
+                            <SheetContent className="sm:max-w-[600px] p-20 overflow-y-auto">
+                                <SheetHeader className="mb-8 p-0">
+                                    <SheetTitle className="text-2xl font-bold">Nova Conta Fixa</SheetTitle>
+                                    <SheetDescription className="text-base">Configure uma despesa recorrente.</SheetDescription>
                                 </SheetHeader>
-                                <div className="mt-4">
+                                <div className="mt-8">
                                     <RecurringBillForm onSuccess={() => setOpenRecurringSheet(false)} />
                                 </div>
                             </SheetContent>
@@ -191,12 +191,12 @@ function FinanceiroContent() {
                                     <Plus className="mr-2 h-4 w-4" /> Novo Lançamento
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent>
-                                <SheetHeader>
-                                    <SheetTitle>Novo Lançamento</SheetTitle>
-                                    <SheetDescription>Adicione uma receita ou despesa.</SheetDescription>
+                            <SheetContent className="sm:max-w-[600px] p-20 overflow-y-auto">
+                                <SheetHeader className="mb-8 p-0">
+                                    <SheetTitle className="text-2xl font-bold">Novo Lançamento</SheetTitle>
+                                    <SheetDescription className="text-base">Adicione uma receita ou despesa.</SheetDescription>
                                 </SheetHeader>
-                                <div className="mt-4">
+                                <div className="mt-8">
                                     <TransactionForm onSuccess={() => setOpenSheet(false)} />
                                 </div>
                             </SheetContent>

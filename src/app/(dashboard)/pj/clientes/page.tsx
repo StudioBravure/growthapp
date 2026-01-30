@@ -35,10 +35,10 @@ export default function ClientesPage() {
                                 <Plus className="mr-2 h-4 w-4" /> Novo Cliente
                             </Button>
                         </SheetTrigger>
-                        <SheetContent className="sm:max-w-[600px] p-6 sm:p-10">
-                            <SheetHeader className="mb-6">
-                                <SheetTitle>Novo Cliente</SheetTitle>
-                                <SheetDescription>
+                        <SheetContent className="sm:max-w-[700px] p-20 overflow-y-auto">
+                            <SheetHeader className="mb-8 p-0 text-left sm:text-left">
+                                <SheetTitle className="text-3xl font-bold">Novo Cliente</SheetTitle>
+                                <SheetDescription className="text-base">
                                     Adicione as informações para acompanhamento de projetos e cobranças.
                                 </SheetDescription>
                             </SheetHeader>

@@ -162,10 +162,10 @@ export function RecurringBillsPage() {
 
             {/* Sheet Form */}
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent side="right" className="sm:max-w-[400px] overflow-y-auto">
-                    <SheetHeader>
-                        <SheetTitle>{editingBill ? 'Editar Conta Fixa' : 'Nova Conta Fixa'}</SheetTitle>
-                        <SheetDescription>Será gerada automaticamente todo mês.</SheetDescription>
+                <SheetContent side="right" className="sm:max-w-[600px] p-20 overflow-y-auto">
+                    <SheetHeader className="mb-8 p-0">
+                        <SheetTitle className="text-2xl font-bold">{editingBill ? 'Editar Conta Fixa' : 'Nova Conta Fixa'}</SheetTitle>
+                        <SheetDescription className="text-base text-muted-foreground">Será gerada automaticamente todo mês.</SheetDescription>
                     </SheetHeader>
 
                     <div className="grid gap-4 py-4">
@@ -226,12 +226,12 @@ export function RecurringBillsPage() {
                         )}
                     </div>
 
-                    <SheetFooter className="flex-col sm:flex-col gap-2">
-                        <Button onClick={handleSave} className="w-full">Salvar Recorrência</Button>
+                    <SheetFooter className="flex-col sm:flex-col gap-3 p-0 mt-8">
+                        <Button onClick={handleSave} className="w-full h-12 text-base">Salvar Recorrência</Button>
                         {editingBill && (
-                            <Button variant="destructive" onClick={handleDelete} className="w-full gap-2"><Trash2 className="h-4 w-4" /> Excluir Recorrência</Button>
+                            <Button variant="destructive" onClick={handleDelete} className="w-full h-12 gap-2 text-base"><Trash2 className="h-4 w-4" /> Excluir Recorrência</Button>
                         )}
-                        <Button variant="ghost" onClick={() => setIsSheetOpen(false)} className="w-full">Cancelar</Button>
+                        <Button variant="ghost" onClick={() => setIsSheetOpen(false)} className="w-full h-12 text-base">Cancelar</Button>
                     </SheetFooter>
                 </SheetContent>
             </Sheet>

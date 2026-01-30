@@ -12,7 +12,7 @@ import { ConsolidatedOverview } from "@/components/dashboard/consolidated-overvi
 
 export default function DashboardPage() {
     const router = useRouter();
-    const { mode, transactions, generateMonthlyBills, updateTransaction, projects, alerts } = useAppStore();
+    const { mode, transactions, generateMonthlyBills, updateTransaction, projects, alerts, goals } = useAppStore();
 
     // Auto-generate recurring bills for current month whenever dashboard is visited
     useEffect(() => {
@@ -174,10 +174,12 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <div className={cn("text-2xl font-bold", mode === 'PJ' && projectsAtRisk.length > 0 ? "text-amber-500" : "")}>
-                            {mode === 'PJ' ? projectsAtRisk.length : 4}
+                            {mode === 'PJ' ? projectsAtRisk.length : goals.length}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                            {mode === 'PJ' ? 'Prazos menores que 7 dias' : '1 com prazo crítico'}
+                            {mode === 'PJ'
+                                ? 'Prazos menores que 7 dias'
+                                : `${goals.filter(g => g.currentAmount >= g.targetAmount).length} meta(s) atingida(s)`}
                         </p>
                     </CardContent>
                 </Card>

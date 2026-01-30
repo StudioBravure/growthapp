@@ -23,11 +23,12 @@ export function DangerousZoneSettings() {
         setIsLoading(true);
         try {
             await api.admin.resetAccount();
+            useAppStore.getState().resetStore();
             toast.success("Todos os dados foram apagados com sucesso.");
             setIsOpen(false);
 
-            // Reload app state
-            window.location.reload();
+            // Reload app state to ensure clean slate
+            window.location.href = "/";
         } catch (error) {
             console.error(error);
             toast.error("Falha ao apagar dados. Tente novamente.");

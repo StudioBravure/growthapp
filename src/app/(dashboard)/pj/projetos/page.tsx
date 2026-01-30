@@ -35,10 +35,10 @@ export default function ProjetosPage() {
                                 <Plus className="mr-2 h-4 w-4" /> Novo Projeto
                             </Button>
                         </SheetTrigger>
-                        <SheetContent className="sm:max-w-[500px]">
-                            <SheetHeader className="mb-6">
-                                <SheetTitle>Novo Projeto</SheetTitle>
-                                <SheetDescription>
+                        <SheetContent className="sm:max-w-[700px] p-20 overflow-y-auto">
+                            <SheetHeader className="mb-8 p-0 text-left sm:text-left">
+                                <SheetTitle className="text-3xl font-bold">Novo Projeto</SheetTitle>
+                                <SheetDescription className="text-base">
                                     Defina o cliente, prazo e valor para iniciar o acompanhamento.
                                 </SheetDescription>
                             </SheetHeader>
