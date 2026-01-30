@@ -5,6 +5,7 @@ import { User, Session } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useAppStore } from '@/store/use-store'
+import { useRealtimeSync } from '@/hooks/use-realtime-sync'
 
 type AuthContextType = {
     user: User | null
@@ -52,6 +53,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await supabase.auth.signOut()
         router.push('/login')
     }
+
+    useRealtimeSync(user?.id);
 
     return (
         <AuthContext.Provider value={{ user, session, loading, signOut }}>

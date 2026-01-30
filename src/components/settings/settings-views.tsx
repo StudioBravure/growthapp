@@ -16,6 +16,7 @@ import { Check, ChevronsUpDown, GripVertical, Plus, Trash2, X, RefreshCw, Smartp
 import { Category, AppMode, CategorizationRule, Integration } from "@/lib/types";
 import { useState } from "react";
 import { Slider } from "@/components/ui/slider";
+import { DangerousZoneSettings } from "@/components/settings/dangerous-zone";
 
 export function PreferencesSettings() {
     const { settings, updateSettings } = useAppStore();
@@ -481,40 +482,43 @@ export function ExportSettings() {
 
 export function SecuritySettings() {
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Segurança</CardTitle>
-                <CardDescription>Proteja sua conta e sessões.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-full text-primary"><Lock className="h-4 w-4" /></div>
-                        <div>
-                            <p className="text-sm font-medium">Senha</p>
-                            <p className="text-xs text-muted-foreground">Última alteração há 3 meses</p>
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Segurança</CardTitle>
+                    <CardDescription>Proteja sua conta e sessões.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary/10 rounded-full text-primary"><Lock className="h-4 w-4" /></div>
+                            <div>
+                                <p className="text-sm font-medium">Senha</p>
+                                <p className="text-xs text-muted-foreground">Última alteração há 3 meses</p>
+                            </div>
                         </div>
+                        <Button variant="outline" size="sm">Aleterar</Button>
                     </div>
-                    <Button variant="outline" size="sm">Aleterar</Button>
-                </div>
 
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-full text-primary"><Shield className="h-4 w-4" /></div>
-                        <div>
-                            <p className="text-sm font-medium">Autenticação em 2 Etapas</p>
-                            <p className="text-xs text-muted-foreground">Recomendado</p>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary/10 rounded-full text-primary"><Shield className="h-4 w-4" /></div>
+                            <div>
+                                <p className="text-sm font-medium">Autenticação em 2 Etapas</p>
+                                <p className="text-xs text-muted-foreground">Recomendado</p>
+                            </div>
                         </div>
+                        <Switch />
                     </div>
-                    <Switch />
-                </div>
 
-                <div className="pt-4">
-                    <Button variant="ghost" className="w-full justify-start text-destructive hover:bg-destructive/10">
-                        <LogOut className="mr-2 h-4 w-4" /> Sair de todas as sessões
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
+                    <div className="pt-4">
+                        <Button variant="ghost" className="w-full justify-start text-destructive hover:bg-destructive/10">
+                            <LogOut className="mr-2 h-4 w-4" /> Sair de todas as sessões
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+            <DangerousZoneSettings />
+        </div>
     );
 }

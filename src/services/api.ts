@@ -108,5 +108,12 @@ export const api = {
             });
             if (error) throw error;
         }
+    },
+    admin: {
+        resetAccount: async () => {
+            const supabase = getSupabase();
+            const { error } = await supabase.rpc('delete_user_data');
+            if (error) throw error;
+        }
     }
 };
