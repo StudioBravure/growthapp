@@ -107,7 +107,7 @@ export function TransactionList({ data, highlightId }: TransactionListProps) {
                                             {transaction.status === 'PAID' ? 'Pago' : transaction.status === 'PENDING' ? 'Pendente' : 'Agendado'}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className={`text-right font-bold ${transaction.type === 'INCOME' ? 'text-emerald-500' : 'text-red-500'}`}>
+                                    <TableCell className={`text-right font-bold ${transaction.type === 'INCOME' ? 'text-system-green' : 'text-system-red'}`}>
                                         {transaction.type === 'INCOME' ? '+' : '-'} {formatCurrency(transaction.amount)}
                                     </TableCell>
                                     <TableCell>

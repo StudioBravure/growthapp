@@ -10,12 +10,12 @@ import { Clock, DollarSign } from "lucide-react";
 import { motion } from "framer-motion";
 
 const COLUMNS: { id: PipelineStage; label: string; color: string }[] = [
-    { id: 'LEAD', label: 'Lead', color: 'bg-zinc-500/10 border-zinc-500/20' },
-    { id: 'PROPOSAL', label: 'Proposta', color: 'bg-blue-500/10 border-blue-500/20' },
-    { id: 'NEGOTIATION', label: 'Negociação', color: 'bg-indigo-500/10 border-indigo-500/20' },
-    { id: 'CLOSED', label: 'Fechado', color: 'bg-emerald-500/10 border-emerald-500/20' },
-    { id: 'EXECUTION', label: 'Em Execução', color: 'bg-amber-500/10 border-amber-500/20' },
-    { id: 'DELIVERY', label: 'Entregue', color: 'bg-purple-500/10 border-purple-500/20' },
+    { id: 'LEAD', label: 'Lead', color: 'bg-foreground/5 border-border' },
+    { id: 'PROPOSAL', label: 'Proposta', color: 'bg-system-blue/5 border-system-blue/20' },
+    { id: 'NEGOTIATION', label: 'Negociação', color: 'bg-system-purple/5 border-system-purple/20' },
+    { id: 'CLOSED', label: 'Fechado', color: 'bg-system-green/5 border-system-green/20' },
+    { id: 'EXECUTION', label: 'Em Execução', color: 'bg-system-yellow/5 border-system-yellow/20' },
+    { id: 'DELIVERY', label: 'Entregue', color: 'bg-system-blue/10 border-system-blue/30' },
 ];
 
 export function ProjectKanban() {
@@ -72,11 +72,11 @@ export function ProjectKanban() {
                                                             <div className="space-y-1 mt-1">
                                                                 <div className="flex justify-between text-[10px]">
                                                                     <span>Recebido</span>
-                                                                    <span className={percent >= 100 ? "text-emerald-500 font-bold" : ""}>{formatCurrency(received)}</span>
+                                                                    <span className={percent >= 100 ? "text-system-green font-bold" : ""}>{formatCurrency(received)}</span>
                                                                 </div>
-                                                                <div className="h-1.5 w-full bg-muted overflow-hidden rounded-full">
+                                                                <div className="h-1.5 w-full bg-secondary overflow-hidden rounded-full">
                                                                     <div
-                                                                        className={`h-full ${percent >= 100 ? 'bg-emerald-500' : 'bg-primary'} transition-all`}
+                                                                        className={`h-full ${percent >= 100 ? 'bg-system-green shadow-[0_0_8px_rgba(52,199,89,0.3)]' : 'bg-system-blue'} transition-all duration-500`}
                                                                         style={{ width: `${percent}%` }}
                                                                     />
                                                                 </div>

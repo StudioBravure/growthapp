@@ -259,7 +259,7 @@ export function ConsolidatedOverview() {
                         variant={mode === 'PF' ? 'secondary' : 'ghost'}
                         size="sm"
                         onClick={() => setMode('PF')}
-                        className={cn("text-xs", mode === 'PF' && "bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300")}
+                        className={cn("text-xs", mode === 'PF' && "bg-system-blue/10 text-system-blue hover:bg-system-blue/20 transition-colors")}
                     >
                         <User className="mr-2 h-3 w-3" /> Focar Pessoal
                     </Button>
@@ -268,7 +268,7 @@ export function ConsolidatedOverview() {
                         variant={mode === 'PJ' ? 'secondary' : 'ghost'}
                         size="sm"
                         onClick={() => setMode('PJ')}
-                        className={cn("text-xs", mode === 'PJ' && "bg-violet-100 text-violet-700 hover:bg-violet-200 dark:bg-violet-900/40 dark:text-violet-300")}
+                        className={cn("text-xs", mode === 'PJ' && "bg-system-blue/10 text-system-blue hover:bg-system-blue/20 transition-colors")}
                     >
                         <Briefcase className="mr-2 h-3 w-3" /> Focar Estúdio
                     </Button>
@@ -605,23 +605,23 @@ export function ConsolidatedOverview() {
                                 <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="gradientReal" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
-                                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="var(--color-system-green)" stopOpacity={0.15} />
+                                            <stop offset="95%" stopColor="var(--color-system-green)" stopOpacity={0} />
                                         </linearGradient>
                                         <linearGradient id="gradientForecast" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1} />
-                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="var(--color-system-blue)" stopOpacity={0.15} />
+                                            <stop offset="95%" stopColor="var(--color-system-blue)" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                                     <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} dy={10} />
                                     <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => `${val / 1000}k`} />
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                                        contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderRadius: '12px', fontSize: '12px', boxShadow: 'var(--shadow-md)' }}
                                         formatter={(value: any) => [`R$ ${Number(value).toFixed(2)}`, '']}
                                     />
-                                    <Area type="monotone" dataKey="realBalance" stroke="#10b981" strokeWidth={2} fill="url(#gradientReal)" name="Realizado" />
-                                    <Area type="monotone" dataKey="forecastBalance" stroke="#6366f1" strokeWidth={2} strokeDasharray="4 4" fill="none" name="Previsto" />
+                                    <Area type="monotone" dataKey="realBalance" stroke="var(--color-system-green)" strokeWidth={3} fill="url(#gradientReal)" name="Realizado" />
+                                    <Area type="monotone" dataKey="forecastBalance" stroke="var(--color-system-blue)" strokeWidth={3} strokeDasharray="6 4" fill="none" name="Previsto" />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>

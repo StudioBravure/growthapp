@@ -27,7 +27,7 @@
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
 
-  /* Core UI */
+  /* Core UI - Apple Semantic Mapping */
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -46,118 +46,94 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
 
-  /* === NEW MD3 EXPLICIT TOKENS === */
-  --color-surface: var(--surface);
-  --color-surface-container-low: var(--surface-container-low);
-  --color-surface-container: var(--surface-container);
-  --color-surface-container-high: var(--surface-container-high);
-  --color-surface-container-highest: var(--surface-container-highest);
+  /* Apple Palette Variables for Utility Usage */
+  --color-system-blue: #007AFF;
+  --color-system-green: #34C759;
+  --color-system-yellow: #FFCC00;
+  --color-system-red: #FF3B30;
+  --color-system-purple: #AF52DE;
+  --color-system-gray: rgba(60, 60, 67, 0.60);
 
-  --color-on-background: var(--on-background);
-  --color-on-surface: var(--on-surface);
-  --color-on-surface-variant: var(--on-surface-variant);
-
-  --color-outline: var(--outline);
-  --color-outline-variant: var(--outline-variant);
-
-  --color-primary-container: var(--primary-container);
-  --color-on-primary-container: var(--on-primary-container);
-
-  --color-secondary-container: var(--secondary-container);
-  --color-on-secondary-container: var(--on-secondary-container);
-
-  --color-tertiary: var(--tertiary);
-  --color-on-tertiary: var(--on-tertiary);
-  --color-tertiary-container: var(--tertiary-container);
-  --color-on-tertiary-container: var(--on-tertiary-container);
-
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-success-container: var(--success-container);
-  --color-on-success-container: var(--on-success-container);
-
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-  --color-warning-container: var(--warning-container);
-  --color-on-warning-container: var(--on-warning-container);
-
-  --color-info: var(--info);
-  --color-info-foreground: var(--info-foreground);
-  --color-info-container: var(--info-container);
-  --color-on-info-container: var(--on-info-container);
-
-  --color-error-container: var(--error-container);
-  --color-on-error-container: var(--on-error-container);
-
-  /* Radius */
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  /* Radius Overrides */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
 }
 
 :root {
-  --radius: 0.5rem;
+  --radius: 14px;
 
-  /* Standard Light Mode (Preserved/Default) */
-  --background: #ffffff;
-  --foreground: #09090b;
+  /* Apple Human Interface Palette (Light Mode) */
+  --background: #F2F2F7;
+  /* Grouped Background (systemGroupedBackground) */
+  --foreground: #000000;
+  /* Label text */
 
-  --card: #ffffff;
-  --card-foreground: #09090b;
+  --card: #FFFFFF;
+  /* Elevated Surface (systemBackground) */
+  --card-foreground: #1C1C1E;
 
-  --popover: #ffffff;
-  --popover-foreground: #09090b;
+  --popover: #FFFFFF;
+  --popover-foreground: #1C1C1E;
 
-  --primary: #18181b;
-  --primary-foreground: #fafafa;
+  --primary: #007AFF;
+  /* System Blue Accent */
+  --primary-foreground: #FFFFFF;
 
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
+  --secondary: rgba(120, 120, 128, 0.16);
+  /* System Fill (suttle gray backgrounds) */
+  --secondary-foreground: #000000;
 
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
+  --muted: #F2F2F7;
+  --muted-foreground: rgba(60, 60, 67, 0.60);
+  /* Secondary Label */
 
-  --accent: #f4f4f5;
-  --accent-foreground: #18181b;
+  --accent: rgba(120, 120, 128, 0.12);
+  /* Hover states */
+  --accent-foreground: #000000;
 
-  --destructive: #ef4444;
-  --destructive-foreground: #fafafa;
+  --destructive: #FF3B30;
+  /* System Red */
+  --destructive-foreground: #FFFFFF;
 
-  --border: #e4e4e7;
-  --input: #e4e4e7;
-  --ring: #18181b;
+  --border: rgba(60, 60, 67, 0.20);
+  /* Light separators */
+  --input: rgba(60, 60, 67, 0.20);
+  --ring: rgba(0, 122, 255, 0.35);
 
-  --chart-1: #121316;
-  --chart-2: #2eb88a;
-  --chart-3: #e88c30;
-  --chart-4: #af57db;
-  --chart-5: #e23670;
+  --chart-1: #007AFF;
+  --chart-2: #34C759;
+  --chart-3: #FFCC00;
+  --chart-4: #FF3B30;
+  --chart-5: #AF52DE;
 
-  --sidebar: #f8f9fa;
-  --sidebar-foreground: #343a40;
-  --sidebar-primary: #18181b;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e9ecef;
+  /* Sidebar specifically for Light Mode (Clean White) */
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: rgba(60, 60, 67, 0.60);
+  --sidebar-primary: #007AFF;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: rgba(120, 120, 128, 0.12);
   --sidebar-accent-foreground: #000000;
-  --sidebar-border: #e9ecef;
-  --sidebar-ring: #18181b;
+  --sidebar-border: rgba(60, 60, 67, 0.15);
+  --sidebar-ring: #007AFF;
 
-  /* MD3 Light Mode Shims */
-  --warning: #f59e0b;
-  --state-hover-overlay: rgba(0, 0, 0, 0.05);
-  --surface: #ffffff;
-  --surface-container: #f4f4f5;
-  --surface-container-high: #e4e4e7;
-  --surface-container-low: #ffffff;
-  --outline-variant: #e4e4e7;
+  /* Additional Apple Tokens */
+  --state-hover-overlay: rgba(120, 120, 128, 0.12);
+  --separator: rgba(60, 60, 67, 0.29);
+  --fill: rgba(120, 120, 128, 0.16);
+  --fill-strong: rgba(120, 120, 128, 0.24);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  --success: #34C759;
+  --warning: #FFCC00;
+  --error: #FF3B30;
 }
 
 .dark {
-  /* 2.1 Neutrals */
+  /* DARK MODE - Optimized for MD3 but consistent semantics */
   --background: #0F1115;
   --surface: #141821;
   --surface-container-low: #171C26;
@@ -165,109 +141,85 @@
   --surface-container-high: #202A3B;
   --surface-container-highest: #273247;
 
-  /* 2.2 Text / Icons */
   --on-background: #E7EAF0;
   --on-surface: #E5E9F2;
   --on-surface-variant: #B7C0D1;
   --outline: #3A465E;
   --outline-variant: #2A3448;
 
-  /* 2.3 Brand (Primary) */
   --primary: #7AA2FF;
   --primary-foreground: #0B1020;
-  --primary-container: #22335C;
-  --on-primary-container: #DDE6FF;
-
-  /* 2.4 Secondary / Tertiary */
-  --secondary: #7FD6C2;
-  --secondary-foreground: #071A16;
-  --secondary-container: #1E3B35;
-  --on-secondary-container: #CFF7EE;
-
-  --tertiary: #F2B36A;
-  --tertiary-foreground: #1B1206;
-  /* Calculated blackish */
-  --on-tertiary: #1B1206;
-  --tertiary-container: #3E2C16;
-  --on-tertiary-container: #FFE2C1;
-
-  /* 2.5 Semantic States */
-  --destructive: #FF6B6B;
-  --destructive-foreground: #2A0707;
-  --error-container: #3B1111;
-  --on-error-container: #FFD1D1;
-
-  --success: #5CE0A3;
-  --success-foreground: #062014;
-  --success-container: #123524;
-  --on-success-container: #BFF7DA;
-
-  --warning: #FFD166;
-  --warning-foreground: #241A00;
-  --warning-container: #3D2E08;
-  --on-warning-container: #FFE8B3;
-
-  --info: #66B3FF;
-  --info-foreground: #061726;
-  --info-container: #102C46;
-  --on-info-container: #CFE7FF;
-
-  /* === MAPPINGS TO SHADCN SEMANTICS === */
 
   --foreground: var(--on-background);
-
-  /* Cards (Surface Container Low) */
   --card: var(--surface-container-low);
   --card-foreground: var(--on-surface);
-
-  /* Popovers (Surface Container) */
   --popover: var(--surface-container);
   --popover-foreground: var(--on-surface);
-
-  /* Muted backgrounds (Highest) */
   --muted: var(--surface-container-highest);
   --muted-foreground: var(--on-surface-variant);
-
-  /* Accent (High) - Hover states */
   --accent: var(--surface-container-high);
   --accent-foreground: var(--on-surface);
-
-  /* Border (Outline Variant) */
   --border: var(--outline-variant);
-
-  /* Input (Border Color mostly in Shadcn) */
   --input: var(--outline-variant);
   --ring: #7AA2FF;
 
-  /* Charts */
   --chart-1: #7AA2FF;
   --chart-2: #7FD6C2;
   --chart-3: #F2B36A;
   --chart-4: #FF6B6B;
   --chart-5: #66B3FF;
 
-  /* Sidebar (Surface Container) */
   --sidebar: var(--surface-container);
   --sidebar-foreground: var(--on-surface-variant);
-  /* MD3 Nav Drawer inactive items */
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
   --sidebar-accent: var(--surface-container-high);
-  /* Active item bg */
   --sidebar-accent-foreground: var(--on-surface);
-  /* Active item text */
   --sidebar-border: var(--outline-variant);
-  /* Optional */
-  --sidebar-ring: var(--primary);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.1s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.1s ease;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased selection:bg-primary/20;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Apple-like scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full border-2 border-transparent bg-clip-padding;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40;
+  }
+}
+
+@layer components {
+
+  /* Utility for Apple Grouped Cards */
+  .apple-card {
+    @apply bg-card rounded-lg border shadow-sm transition-all hover:shadow-md;
+  }
+
+  .apple-active-fill {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  .apple-glass {
+    @apply bg-background/80 backdrop-blur-xl saturate-150;
   }
 }

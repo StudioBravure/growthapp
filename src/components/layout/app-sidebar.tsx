@@ -46,15 +46,15 @@ export function AppSidebar() {
 
     return (
         <aside className={cn(
-            "fixed left-0 top-0 z-40 h-screen border-r border-border bg-sidebar transition-all duration-300 flex flex-col shadow-xl shadow-black/40",
+            "fixed left-0 top-0 z-40 h-screen border-r border-border bg-sidebar transition-all duration-300 flex flex-col shadow-sm",
             isSidebarOpen ? "w-64" : "w-16"
         )}>
             {/* Header */}
-            <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border shrink-0 bg-surface-container-high/90 backdrop-blur-sm">
+            <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border shrink-0 bg-sidebar/80 backdrop-blur-xl">
                 {isSidebarOpen ? (
                     <div className="flex flex-col">
-                        <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-primary to-violet-400 bg-clip-text text-transparent">Studio Bravure</span>
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest -mt-1">Dashboard</span>
+                        <span className="font-bold text-xl tracking-tight text-primary">Studio Bravure</span>
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest -mt-1 font-medium">Dashboard</span>
                     </div>
                 ) : (
                     <span className="font-bold text-xl text-primary mx-auto">S</span>

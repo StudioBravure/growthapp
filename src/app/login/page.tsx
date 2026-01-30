@@ -15,14 +15,14 @@ export default async function LoginPage({
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-            {/* Glow Effects */}
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[128px] pointer-events-none" />
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-chart-2/10 rounded-full blur-[128px] pointer-events-none" />
+            {/* Glow Effects - Softened for Apple Light */}
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-system-blue/10 rounded-full blur-[128px] pointer-events-none" />
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-system-green/5 rounded-full blur-[128px] pointer-events-none" />
 
-            <Card className="w-full max-w-md border-border bg-card/50 backdrop-blur-xl shadow-2xl relative z-10">
+            <Card className="w-full max-w-md border-border bg-card/80 backdrop-blur-xl shadow-md relative z-10 rounded-3xl">
                 <CardHeader className="space-y-1 flex flex-col items-center text-center">
-                    <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center mb-4 text-primary-foreground">
-                        <Zap className="h-6 w-6" />
+                    <div className="h-16 w-16 rounded-3xl bg-primary flex items-center justify-center mb-6 text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-105">
+                        <Zap className="h-8 w-8 fill-current" />
                     </div>
                     <CardTitle className="text-2xl font-bold tracking-tight">Studio Bravure</CardTitle>
                     <CardDescription>

@@ -15,7 +15,7 @@ export function GlobalModeSwitcher() {
                     <TabsList className="grid w-full grid-cols-3 bg-sidebar-accent/50 p-1 h-10 border border-sidebar-border">
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <TabsTrigger value="PF" className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border-primary/30 border border-transparent transition-all">
+                                <TabsTrigger value="PF" className="text-xs data-[state=active]:bg-system-blue/10 data-[state=active]:text-system-blue data-[state=active]:border-system-blue/20 border border-transparent transition-all rounded-md">
                                     <User className="h-3.5 w-3.5 mr-1.5" /> PF
                                 </TabsTrigger>
                             </TooltipTrigger>
@@ -24,7 +24,7 @@ export function GlobalModeSwitcher() {
 
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <TabsTrigger value="PJ" className="text-xs data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-500 data-[state=active]:border-blue-500/30 border border-transparent transition-all">
+                                <TabsTrigger value="PJ" className="text-xs data-[state=active]:bg-system-blue/10 data-[state=active]:text-system-blue data-[state=active]:border-system-blue/20 border border-transparent transition-all rounded-md">
                                     <Building2 className="h-3.5 w-3.5 mr-1.5" /> PJ
                                 </TabsTrigger>
                             </TooltipTrigger>
@@ -33,7 +33,7 @@ export function GlobalModeSwitcher() {
 
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <TabsTrigger value="CONSOLIDATED" className="text-xs data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-500 data-[state=active]:border-purple-500/30 border border-transparent transition-all">
+                                <TabsTrigger value="CONSOLIDATED" className="text-xs data-[state=active]:bg-foreground/5 data-[state=active]:text-foreground data-[state=active]:border-foreground/10 border border-transparent transition-all rounded-md">
                                     <Infinity className="h-3.5 w-3.5 mr-1.5" /> 360°
                                 </TabsTrigger>
                             </TooltipTrigger>
