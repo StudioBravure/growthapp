@@ -30,25 +30,7 @@ export async function login(formData: FormData) {
     redirect(returnTo || '/')
 }
 
-export async function signInWithGoogle(returnTo?: string) {
-    const supabase = await createClient()
-    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
-    const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-            redirectTo: `${origin}/auth/callback?returnTo=${returnTo || '/'}`,
-        },
-    })
-
-    if (error) {
-        redirect(`/login?error=${encodeURIComponent(error.message)}`)
-    }
-
-    if (data.url) {
-        redirect(data.url)
-    }
-}
 
 export async function signup(formData: FormData) {
     const supabase = await createClient()
