@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AppMode, Transaction, Project, PipelineStage, Debt, RecurringBill, Goal, Client, AppSettings, Category, CategorizationRule, Integration, Alert, Budget } from '@/lib/types';
+import { AppMode, Transaction, Project, PipelineStage, Debt, RecurringBill, Goal, Client, AppSettings, Category, CategorizationRule, Integration, Alert, Budget, BudgetMonthly, BudgetSettings } from '@/lib/types';
 import { addMonths, format, setDate } from 'date-fns';
 import { api } from '@/services/api';
 
@@ -57,7 +57,17 @@ interface AppState {
 
     // Budgets
     budgets: Budget[];
+
     updateBudget: (category: string, mode: 'PF' | 'PJ', limit: number) => void;
+
+    // Monthly Budgets
+    monthlyBudgets: BudgetMonthly[];
+    pfBudgetSettings: BudgetSettings | null;
+    loadMonthlyBudgets: (monthKey: string) => Promise<void>;
+    saveMonthlyBudget: (b: Partial<BudgetMonthly>) => Promise<void>;
+    copyPreviousMonthBudgets: (currentMonth: string) => Promise<void>;
+    loadBudgetSettings: () => Promise<void>;
+    saveBudgetSettings: (s: Partial<BudgetSettings>) => Promise<void>;
 
     // Settings & Configuration
     settings: AppSettings;
@@ -130,6 +140,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     recurringBills: [],
     goals: [],
     budgets: [],
+    monthlyBudgets: [],
+    pfBudgetSettings: null,
     categories: [],
     categorizationRules: [],
     integrations: [],
@@ -352,6 +364,58 @@ export const useAppStore = create<AppState>((set, get) => ({
             return { budgets: [...state.budgets, { category, mode, limit }] };
         });
         api.budgets.update({ category, mode, limit }).catch(console.error);
+    },
+
+    loadMonthlyBudgets: async (monthKey) => {
+        const budgets = await api.pfBudgets.list(monthKey);
+        set({ monthlyBudgets: budgets });
+    },
+
+    saveMonthlyBudget: async (b) => {
+        // Optimistic update
+        set((state) => {
+            const exists = state.monthlyBudgets.find(m => m.category_id === b.category_id && m.month_key === b.month_key);
+            if (exists) {
+                return { monthlyBudgets: state.monthlyBudgets.map(m => (m.category_id === b.category_id && m.month_key === b.month_key) ? { ...m, ...b } : m) };
+            }
+            return { monthlyBudgets: [...state.monthlyBudgets, b as BudgetMonthly] }; // Type assertion as partial is passed
+        });
+        await api.pfBudgets.upsert(b);
+        // Reload to sync ID and details
+        if (b.month_key) get().loadMonthlyBudgets(b.month_key);
+        // Trigger generic scan (fire and forget)
+        if (b.month_key) {
+            api.alerts.scan({
+                ledger: 'PF',
+                mode: 'INCREMENTAL',
+                reason: 'budget_update',
+                month_key: b.month_key
+            }).catch(console.error);
+        }
+    },
+
+    copyPreviousMonthBudgets: async (currentMonth) => {
+        await api.pfBudgets.copyPrevious(currentMonth);
+        await get().loadMonthlyBudgets(currentMonth);
+    },
+
+    loadBudgetSettings: async () => {
+        const settings = await api.pfBudgets.getSettings();
+        set({ pfBudgetSettings: settings });
+    },
+
+    saveBudgetSettings: async (s) => {
+        set((state) => ({
+            pfBudgetSettings: state.pfBudgetSettings ? { ...state.pfBudgetSettings, ...s } : (s as BudgetSettings)
+        }));
+        await api.pfBudgets.updateSettings(s);
+        // Trigger generic scan
+        api.alerts.scan({
+            ledger: 'PF',
+            mode: 'FULL', // Settings change might affect all
+            reason: 'settings_update',
+            month_key: format(new Date(), 'yyyy-MM')
+        }).catch(console.error);
     },
 
     updateSettings: (updates) => set((state) => {

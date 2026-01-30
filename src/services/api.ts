@@ -1,5 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr';
-import { Transaction, Project, Client, Debt, RecurringBill, Goal, Category, CategorizationRule, Integration, Alert, Budget } from '@/lib/types';
+import { Transaction, Project, Client, Debt, RecurringBill, Goal, Category, CategorizationRule, Integration, Alert, Budget, BudgetMonthly, BudgetSettings } from '@/lib/types';
 
 const getSupabase = () => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -307,6 +307,112 @@ export const api = {
         }
     },
 
+    pfBudgets: {
+        list: async (monthKey: string): Promise<BudgetMonthly[]> => {
+            try {
+                const supabase = getSupabase();
+                const { data, error } = await supabase
+                    .from('budget_category_monthly')
+                    .select('*')
+                    .eq('month_key', monthKey)
+                    .eq('ledger_type', 'PF');
+
+                if (error) {
+                    console.warn("Error fetching monthly budgets", error);
+                    return [];
+                }
+                return data.map(d => ({
+                    id: d.id,
+                    owner_id: d.owner_id,
+                    owner_email: d.owner_email,
+                    ledger_type: d.ledger_type,
+                    month_key: d.month_key,
+                    category_id: d.category_id,
+                    budget_amount: d.budget_amount,
+                    is_alerts_paused: d.is_alerts_paused,
+                    created_at: d.created_at,
+                    updated_at: d.updated_at
+                }));
+            } catch (e) { console.error(e); return []; }
+        },
+        upsert: async (b: Partial<BudgetMonthly>) => {
+            const user = await getUser();
+            const supabase = getSupabase();
+            const { error } = await supabase.from('budget_category_monthly').upsert({
+                owner_id: user.id,
+                owner_email: user.email!,
+                ledger_type: 'PF',
+                month_key: b.month_key,
+                category_id: b.category_id,
+                budget_amount: b.budget_amount,
+                is_alerts_paused: b.is_alerts_paused
+            }, { onConflict: 'owner_id, ledger_type, month_key, category_id' });
+            if (error) throw error;
+        },
+        copyPrevious: async (currentMonth: string) => {
+            const user = await getUser();
+            const supabase = getSupabase();
+            const [y, m] = currentMonth.split('-').map(Number);
+            const prevDate = new Date(y, m - 2); // m is 1-indexed, so m-1 is current, m-2 is prev
+            const prevMonthKey = prevDate.toISOString().slice(0, 7);
+
+            const { data: prevData } = await supabase.from('budget_category_monthly')
+                .select('*')
+                .eq('month_key', prevMonthKey)
+                .eq('ledger_type', 'PF');
+
+            if (prevData && prevData.length > 0) {
+                const newRows = prevData.map(d => ({
+                    owner_id: user.id,
+                    owner_email: user.email!,
+                    ledger_type: 'PF',
+                    month_key: currentMonth,
+                    category_id: d.category_id,
+                    budget_amount: d.budget_amount,
+                    is_alerts_paused: d.is_alerts_paused
+                }));
+                const { error } = await supabase.from('budget_category_monthly').upsert(newRows, { onConflict: 'owner_id, ledger_type, month_key, category_id' });
+                if (error) throw error;
+            }
+        },
+        getSettings: async (): Promise<BudgetSettings | null> => {
+            const supabase = getSupabase();
+            try {
+                const { data, error } = await supabase.from('budget_pf_settings')
+                    .select('*')
+                    .eq('ledger_type', 'PF')
+                    .maybeSingle();
+
+                if (error) { console.warn("Error fetching budget settings", error); return null; }
+                if (!data) return null;
+
+                return {
+                    id: data.id,
+                    owner_id: data.owner_id,
+                    owner_email: data.owner_email,
+                    ledger_type: data.ledger_type,
+                    alert_threshold_percent: data.alert_threshold_percent,
+                    alert_on_over: data.alert_on_over,
+                    detect_anomaly: data.detect_anomaly,
+                    ignore_category_ids: data.ignore_category_ids,
+                    calc_basis: data.calc_basis,
+                    updated_at: data.updated_at
+                };
+            } catch (e) { return null; }
+        },
+        updateSettings: async (s: Partial<BudgetSettings>) => {
+            const user = await getUser();
+            const supabase = getSupabase();
+            const { error } = await supabase.from('budget_pf_settings').upsert({
+                owner_id: user.id,
+                owner_email: user.email!,
+                ledger_type: 'PF',
+                ...s
+            }, { onConflict: 'owner_id, ledger_type' });
+            if (error) throw error;
+        }
+    },
+
     categories: {
         list: async (): Promise<Category[]> => {
             const supabase = getSupabase();
@@ -408,6 +514,18 @@ export const api = {
                 snoozedUntil: d.snoozed_until,
                 resolvedAt: d.resolved_at
             }));
+        },
+        scan: async (payload: { ledger: 'PF' | 'PJ', mode: 'INCREMENTAL' | 'FULL', reason: string, month_key: string }) => {
+            try {
+                // Call Next.js API route
+                await fetch('/api/alerts/scan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (e) {
+                console.error("Failed to trigger alert scan", e);
+            }
         }
     },
 

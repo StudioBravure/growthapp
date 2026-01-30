@@ -175,8 +175,116 @@ export interface AppSettings {
     };
 }
 
+// Legacy Budget Interface
 export interface Budget {
     category: string;
     limit: number;
     mode: 'PF' | 'PJ';
+}
+
+export interface BudgetMonthly {
+    id: string; // uuid
+    owner_id?: string;
+    owner_email?: string;
+    ledger_type: 'PF' | 'PJ';
+    month_key: string; // YYYY-MM
+    category_id: string;
+    budget_amount: number; // cents or as per usage (seems to be cents in app)
+    is_alerts_paused: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface BudgetSettings {
+    id: string;
+    owner_id?: string;
+    owner_email?: string;
+    ledger_type: 'PF';
+    alert_threshold_percent: number;
+    alert_on_over: boolean;
+    detect_anomaly: boolean;
+    ignore_category_ids: string[];
+    calc_basis: 'TRANSACTION_DATE' | 'DUE_DATE';
+    updated_at?: string;
+}
+
+export interface BudgetSummaryCard {
+    totalLimit: number;
+    totalSpent: number;
+    remaining: number;
+    percentConsumed: number;
+    status: 'OK' | 'WARNING' | 'OVER';
+}
+
+// Scanner de Extratos Types
+
+export type SourceType = 'CSV' | 'PDF' | 'OCR' | 'OFX';
+export type BatchStatus = 'PROCESSING' | 'READY_TO_REVIEW' | 'IMPORTED' | 'ROLLED_BACK' | 'FAILED';
+export type ImportRowStatus = 'NEW' | 'DUPLICATE_SUSPECT' | 'NEEDS_REVIEW' | 'READY' | 'IMPORTED' | 'SKIPPED';
+export type ConfidenceLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+
+export interface ImportFile {
+    id: string;
+    owner_id?: string;
+    owner_email: string;
+    ledger_type: 'PF' | 'PJ';
+    storage_path: string;
+    original_name: string;
+    mime_type?: string;
+    size?: number;
+    sha256_hash?: string;
+    created_at: string;
+}
+
+export interface ImportBatch {
+    id: string;
+    owner_id?: string;
+    owner_email: string;
+    ledger_type: 'PF' | 'PJ';
+    source_type: SourceType;
+    file_id?: string;
+    status: BatchStatus;
+    date_start?: string;
+    date_end?: string;
+    totals_json?: {
+        incoming: number;
+        outgoing: number;
+        count: number;
+    };
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ImportRow {
+    id: string;
+    batch_id: string;
+    owner_id?: string;
+    owner_email: string;
+    ledger_type: 'PF' | 'PJ';
+    row_index: number;
+    date: string; // YYYY-MM-DD
+    amount: number; // cents
+    direction: 'IN' | 'OUT';
+    description_raw?: string;
+    description_norm?: string;
+    merchant?: string;
+    suggested_category_id?: string;
+    final_category_id?: string;
+    confidence: ConfidenceLevel;
+    status: ImportRowStatus;
+    duplicate_of_transaction_id?: string;
+    created_transaction_id?: string;
+    created_at?: string;
+}
+
+export interface CategoryMappingRule {
+    id: string;
+    owner_id?: string;
+    owner_email: string;
+    ledger_type: 'PF' | 'PJ';
+    match_type: 'CONTAINS' | 'REGEX' | 'STARTS_WITH' | 'EXACT';
+    pattern: string;
+    category_id: string;
+    priority: number;
+    created_at?: string;
 }
