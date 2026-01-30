@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useCustomers } from "@/hooks/use-pj-data";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -41,8 +42,8 @@ export default function PjClientesPage() {
                 await createCustomer(formData);
             }
             setIsSheetOpen(false);
-        } catch (e) {
-            // handled in hook
+        } catch (e: any) {
+            toast.error(e.message || "Erro ao salvar cliente");
         } finally {
             setSaving(false);
         }
