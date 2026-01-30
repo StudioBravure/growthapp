@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { DollarSign, Activity, TrendingUp, AlertCircle, Calendar, ChevronRight, Bell, ShieldCheck } from "lucide-react";
 import { useAppStore } from "@/store/use-store";
 import { Button } from "@/components/ui/button";
-import { useAlerts } from "@/hooks/use-alerts";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { parseISO, isSameMonth, differenceInDays } from "date-fns";
