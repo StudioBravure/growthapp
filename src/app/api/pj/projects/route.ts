@@ -16,7 +16,14 @@ export async function GET(req: NextRequest) {
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        return NextResponse.json(data);
+
+        // Map 'name' to 'title' for frontend compatibility if necessary
+        const mappedData = data.map(p => ({
+            ...p,
+            title: p.title || p.name // ensure title exists
+        }));
+
+        return NextResponse.json(mappedData);
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
@@ -55,18 +62,21 @@ export async function POST(req: NextRequest) {
             owner_email: user.email,
             ledger_type: 'PJ',
             client_id: body.client_id,
-            title: body.title,
+            name: body.title, // Map frontend 'title' to DB 'name'
+            title: body.title, // Also populate 'title' column
             billing_model: model,
+            status: 'ACTIVE', // Required by DB
+            stage: body.status_stage || 'EXECUTION', // Required by DB
             status_stage: body.status_stage || 'EXECUTION',
 
             // Financials
             scope_value: Number(body.scope_value || 0),
             hourly_rate: Number(body.hourly_rate || 0),
             retainer_amount: Number(body.retainer_amount || 0),
-            cost_hour_internal: Number(body.cost_hour_internal || 100), // Default 100
+            cost_hour_internal: Number(body.cost_hour_internal || 100),
             estimated_hours: Number(body.estimated_hours || 0),
 
-            // Snapshots (P-2)
+            // Snapshots
             client_snapshot_company: client.company_name,
             client_snapshot_cnpj: client.cnpj,
             client_snapshot_whatsapp: client.whatsapp,
@@ -79,7 +89,7 @@ export async function POST(req: NextRequest) {
         const { data, error } = await supabase.from('projects').insert(payload).select().single();
         if (error) throw error;
 
-        return NextResponse.json(data);
+        return NextResponse.json({ ...data, title: data.name });
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }

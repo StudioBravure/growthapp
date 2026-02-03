@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             .single();
 
         if (error) throw error;
-        return NextResponse.json(data);
+        return NextResponse.json({ ...data, title: data.title || data.name });
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
@@ -32,8 +32,13 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
         const body = await req.json();
 
-        // Remove restricted fields from update if necessary, or just spread
-        // Snapshots should NOT be updated here usually (P-2)
+        // Map 'title' to 'name' and vice versa for sync
+        if (body.title) {
+            body.name = body.title;
+        } else if (body.name) {
+            body.title = body.name;
+        }
+
         const { client_snapshot_company, client_snapshot_cnpj, ...updates } = body;
 
         const { data, error } = await supabase
@@ -45,7 +50,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             .single();
 
         if (error) throw error;
-        return NextResponse.json(data);
+        return NextResponse.json({ ...data, title: data.name });
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
