@@ -37,6 +37,9 @@ export async function POST(req: NextRequest) {
 
         const body = await req.json();
 
+        // P-0: Title Required
+        if (!body.title && !body.name) return NextResponse.json({ error: 'Título do projeto é obrigatório' }, { status: 400 });
+
         // P-1: Client Required
         if (!body.client_id) return NextResponse.json({ error: 'Cliente obrigatório' }, { status: 400 });
 
@@ -62,12 +65,12 @@ export async function POST(req: NextRequest) {
             owner_email: user.email,
             ledger_type: 'PJ',
             client_id: body.client_id,
-            name: body.title, // Map frontend 'title' to DB 'name'
-            title: body.title, // Also populate 'title' column
+            name: body.title || body.name,
+            title: body.title || body.name,
             billing_model: model,
-            status: 'ACTIVE', // Required by DB
-            stage: body.status_stage || 'EXECUTION', // Required by DB
-            status_stage: body.status_stage || 'EXECUTION',
+            status: 'ACTIVE',
+            stage: body.status_stage || body.stage || 'EXECUTION',
+            status_stage: body.status_stage || body.stage || 'EXECUTION',
 
             // Financials
             scope_value: Number(body.scope_value || 0),

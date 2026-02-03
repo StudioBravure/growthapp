@@ -32,6 +32,9 @@ export default function PjProjectsPage() {
     };
 
     const handleSave = async () => {
+        if (!formData.client_id) return toast.error("Selecione um cliente");
+        if (!formData.title || formData.title.trim() === "") return toast.error("Digite o título do projeto");
+
         setSaving(true);
         try {
             await createProject(formData);
