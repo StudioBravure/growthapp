@@ -1,3 +1,49 @@
+export type TimeSessionStatus = 'RUNNING' | 'PAUSED' | 'FINISHED';
+export type TimeSessionEventType = 'START' | 'PAUSE' | 'RESUME' | 'FINISH' | 'EDIT';
+
+export interface TimeSession {
+    id: string;
+    owner_email: string;
+    ledger_type: 'PJ';
+    client_id: string;
+    project_id: string;
+    status: TimeSessionStatus;
+    started_at: string;
+    ended_at?: string | null;
+    last_resumed_at?: string | null;
+    total_seconds: number;
+    billable: boolean;
+    note?: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface TimeSessionEvent {
+    id: string;
+    session_id: string;
+    type: TimeSessionEventType;
+    at: string;
+    delta_seconds?: number | null;
+    meta_json?: any;
+}
+
+export interface ProjectComment {
+    id: string;
+    owner_email: string;
+    ledger_type: 'PJ';
+    client_id: string;
+    project_id: string;
+    body: string;
+    visibility: 'INTERNAL' | 'PUBLIC';
+    created_at: string;
+    user?: { email: string }; // Optional for display if we join
+}
+
+export interface Project {
+    id: string;
+    // ... existing fields ...
+    comments?: ProjectComment[];
+}
 
 export type AppMode = 'PF' | 'PJ' | 'CONSOLIDATED';
 

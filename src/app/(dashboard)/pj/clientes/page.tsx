@@ -116,8 +116,8 @@ export default function PjClientesPage() {
             </div>
 
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent>
-                    <SheetHeader>
+                <SheetContent className="p-[40px]">
+                    <SheetHeader className="px-0 pt-0">
                         <SheetTitle>{editingCust ? 'Editar Cliente' : 'Novo Cliente'}</SheetTitle>
                         <SheetDescription>Preencha os dados obrigatórios.</SheetDescription>
                     </SheetHeader>

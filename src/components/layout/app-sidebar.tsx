@@ -101,20 +101,7 @@ export function AppSidebar() {
                         {isSidebarOpen && <span>Visão Geral</span>}
                     </Link>
 
-                    <Link
-                        href="/scanner-extratos"
-                        className={cn(
-                            "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all group relative overflow-hidden mb-4",
-                            pathname === "/scanner-extratos"
-                                ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                                : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
-                            !isSidebarOpen && "justify-center px-0 w-10 h-10 mx-auto"
-                        )}
-                    >
-                        {pathname === "/scanner-extratos" && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />}
-                        <FileText className={cn("h-5 w-5 shrink-0 transition-colors", pathname === "/scanner-extratos" ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
-                        {isSidebarOpen && <span>Scanner de Extratos</span>}
-                    </Link>
+
 
 
                     {/* GROUPS */}
@@ -139,6 +126,8 @@ export function AppSidebar() {
 
                                 {(isSidebarOpen ? openGroups.includes('financeiro') : true) && (
                                     <div className={cn("space-y-0.5", !isSidebarOpen && "flex flex-col gap-2 items-center border-t border-border/40 pt-2 mt-2")}>
+                                        <NavItem href="/scanner-extratos" icon={FileText} label="Scanner de Extratos" isSidebarOpen={isSidebarOpen} isActive={pathname === '/scanner-extratos'} />
+                                        {/* PF Only: Scanner, Alerts, Budgets */}
                                         <NavItem
                                             href="/alerts"
                                             icon={Bell}

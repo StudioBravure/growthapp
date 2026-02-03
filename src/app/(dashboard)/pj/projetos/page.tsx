@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useProjects, useCustomers } from "@/hooks/use-pj-data";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -35,8 +36,8 @@ export default function PjProjectsPage() {
         try {
             await createProject(formData);
             setIsSheetOpen(false);
-        } catch (e) {
-            // handled
+        } catch (e: any) {
+            toast.error(e.message || "Erro ao criar projeto");
         } finally {
             setSaving(false);
         }
@@ -121,8 +122,8 @@ export default function PjProjectsPage() {
             </div>
 
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent className="sm:max-w-[500px] overflow-y-auto">
-                    <SheetHeader>
+                <SheetContent className="sm:max-w-[500px] overflow-y-auto p-[40px]">
+                    <SheetHeader className="px-0 pt-0">
                         <SheetTitle>Novo Projeto</SheetTitle>
                         <SheetDescription>Vincule um cliente e defina o modelo de cobrança.</SheetDescription>
                     </SheetHeader>

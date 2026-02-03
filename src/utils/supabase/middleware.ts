@@ -84,7 +84,8 @@ export async function updateSession(request: NextRequest) {
     }
 
     // If user is not authenticated and trying to access protected routes, redirect to login
-    if (!user && !isPublicRoute) {
+    // BYPASS: In development, allow access without login (Mock Mode support)
+    if (!user && !isPublicRoute && process.env.NODE_ENV !== 'development') {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         url.pathname = '/login'
